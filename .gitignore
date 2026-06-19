@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.Python
+*.egg-info/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
+*.apk
+*.aab
+*.ipa
+
+# React Native
+mobile/android/app/build/
+mobile/ios/build/
+mobile/.gradle/
+
+# Database
+pgdata/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
