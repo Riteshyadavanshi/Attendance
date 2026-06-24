@@ -83,7 +83,23 @@ cd ios && pod install && cd ..
 npx react-native run-ios
 ```
 
-## 6. Verify Stack
+## 6. Web App Setup
+
+```bash
+cd web
+npm install
+cp .env.example .env.local
+# Set NEXT_PUBLIC_API_BASE_URL=https://attendance-backend-0zqg.onrender.com
+# Or http://localhost:8000 for local backend
+
+npm run dev
+```
+
+Open http://localhost:3000 and log in with a seed user (e.g. `employee@demo.com` / `Demo@123`).
+
+**Production (Vercel):** connect the GitHub repo with root directory `web`, set `NEXT_PUBLIC_API_BASE_URL` to the Render backend URL.
+
+## 7. Verify Stack
 
 | Check | Command / Action |
 |-------|------------------|
@@ -91,6 +107,7 @@ npx react-native run-ios
 | DB connected | Login via API docs |
 | Redis connected | Check-in should not error on session |
 | Mobile login | Use seed user `employee@demo.com` / `Demo@123` |
+| Web login | Same credentials at http://localhost:3000 |
 
 ## Seed Users (Dev)
 
@@ -126,4 +143,10 @@ cd mobile && npm run lint
 
 # Mobile tests
 npm test
+
+# Web lint
+cd web && npm run lint
+
+# Web production build
+cd web && npm run build
 ```

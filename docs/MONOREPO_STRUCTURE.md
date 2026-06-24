@@ -33,6 +33,19 @@ hr-attandence/
 │   ├── package.json
 │   └── .env.example
 │
+├── web/                           # Next.js web app (employee + HR)
+│   ├── src/
+│   │   ├── app/                   # App Router pages
+│   │   │   ├── login/
+│   │   │   └── (dashboard)/       # Protected routes + HR section
+│   │   ├── components/            # UI, layout, attendance, HR
+│   │   ├── hooks/                 # useWebcam, useGeolocation
+│   │   ├── lib/                   # API client, auth helpers
+│   │   └── stores/                # Zustand auth store
+│   ├── package.json
+│   ├── vercel.json
+│   └── .env.example
+│
 ├── backend/
 │   ├── app/
 │   │   ├── main.py                # FastAPI entry
@@ -96,6 +109,8 @@ hr-attandence/
 ## Module Boundaries
 
 - **mobile/** talks only to **backend/** via REST/WebSocket
+- **web/** talks only to **backend/** via REST (same API as mobile)
 - **backend/** calls **ai/** via internal HTTP or message queue
 - No direct mobile → ai communication
+- No direct web → ai communication
 - Shared types: generate OpenAPI client for mobile from FastAPI schema
