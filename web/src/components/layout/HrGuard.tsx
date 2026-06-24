@@ -3,18 +3,26 @@
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
+import { isHrRole } from '@/lib/roles';
 import { useAuthStore } from '@/stores/authStore';
 
 export function HrGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const hydrated = useAuthStore((s) => s.hydrated);
-  const isHr = useAuthStore((s) => s.isHr);
+  const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const hrAccess = Boolean(user?.roles?.length && isHrRole(user.roles));
 
   useEffect(() => {
-    if (hydrated && !isHr()) router.replace('/');
-  }, [hydrated, isHr, router]);
+    if (accessToken && user && !hrAccess) {
+      router.replace('/');
+    }
+  }, [accessToken, user, hrAccess, router]);
 
-  if (!hydrated || !isHr()) {
+  if (!accessToken || !user) {
+    return <p className="text-sm text-slate-500">Checking access…</p>;
+  }
+
+  if (!hrAccess) {
     return <p className="text-sm text-slate-500">Checking access…</p>;
   }
 

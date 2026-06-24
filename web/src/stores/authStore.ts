@@ -36,7 +36,7 @@ export const useAuthStore = create<AuthState>()(
       setHydrated: (v) => set({ hydrated: v }),
       setAuth: (accessToken, refreshToken, user) => {
         setAuthCookie(accessToken);
-        set({ accessToken, refreshToken, user });
+        set({ accessToken, refreshToken, user, hydrated: true });
       },
       logout: () => {
         clearAuthCookie();
