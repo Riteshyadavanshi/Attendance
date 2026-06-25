@@ -21,9 +21,9 @@ export default function LateLeaderboardPage() {
   return (
     <HrGuard>
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-slate-900">Late leaderboard</h1>
-        <p className="text-sm text-slate-500">All-time company ranking by late days</p>
-        {loading ? <p className="text-sm text-slate-500">Loading…</p> : <LateRankList mode="overall" items={items} />}
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Late leaderboard</h1>
+        <p className="text-sm text-muted-foreground">All-time company ranking by late days</p>
+        {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : <LateRankList mode="overall" items={items} />}
       </div>
     </HrGuard>
   );

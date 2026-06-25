@@ -187,6 +187,13 @@ class FeedbackFormCreate(BaseModel):
     questions: list[FeedbackQuestionDef] = Field(min_length=1)
 
 
+class FeedbackFormUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = None
+    questions: list[FeedbackQuestionDef] | None = Field(default=None, min_length=1)
+    is_active: bool | None = None
+
+
 class FeedbackFormSubmit(BaseModel):
     answers: dict[str, str | int | float]
 

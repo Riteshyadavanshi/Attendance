@@ -60,7 +60,7 @@ export default function GeofencePage() {
   return (
     <HrGuard>
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-slate-900">Geofence settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Geofence settings</h1>
         <Card>
           <form onSubmit={onCreate} className="space-y-3">
             <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
@@ -69,7 +69,7 @@ export default function GeofencePage() {
             <div><Label>Radius (m)</Label><Input value={radius} onChange={(e) => setRadius(e.target.value)} /></div>
             <button
               type="button"
-              className="text-sm font-semibold text-indigo-600"
+              className="text-sm font-semibold text-primary"
               onClick={async () => {
                 try {
                   const pos = await getCurrentLocation();
@@ -82,20 +82,20 @@ export default function GeofencePage() {
             >
               Use current GPS
             </button>
-            {message && <p className="text-sm text-indigo-700">{message}</p>}
+            {message && <p className="text-sm font-medium text-primary">{message}</p>}
             <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Add location'}</Button>
           </form>
         </Card>
         {loading ? (
-          <p className="text-sm text-slate-500">Loading locations…</p>
+          <p className="text-sm text-muted-foreground">Loading locations…</p>
         ) : locations.length === 0 ? (
-          <Card><p className="text-sm text-slate-500">No locations yet.</p></Card>
+          <Card><p className="text-sm text-muted-foreground">No locations yet.</p></Card>
         ) : (
           <div className="space-y-2">
             {locations.map((loc) => (
               <Card key={loc.id}>
-                <p className="font-semibold text-slate-900">{loc.name}</p>
-                <p className="text-sm text-slate-500">
+                <p className="font-semibold text-foreground">{loc.name}</p>
+                <p className="text-sm text-muted-foreground">
                   {loc.latitude.toFixed(5)}, {loc.longitude.toFixed(5)} · {loc.radius_meters}m
                 </p>
               </Card>

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   AlarmClock,
   Calendar,
+  Clock,
   Fingerprint,
   Grid3X3,
   Home,
@@ -13,15 +14,15 @@ import {
   Menu,
   MessageSquare,
   Plane,
+  School,
   Trophy,
   User,
   UserPlus,
   Users,
-  Clock,
-  School,
 } from 'lucide-react';
 import { useState } from 'react';
 
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/authStore';
@@ -64,7 +65,9 @@ function NavLink({
       onClick={onClick}
       className={cn(
         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition',
-        active ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-100',
+        active
+          ? 'bg-primary text-primary-foreground shadow-sm shadow-primary/20'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
       )}
     >
       <Icon className="h-4 w-4" />
@@ -82,42 +85,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
 
+  const initials = (user?.full_name ?? user?.email ?? 'U')
+    .split(' ')
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
   const sidebar = (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-slate-200 px-4 py-4">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-600 text-white">
+    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+      <div className="flex items-center gap-2.5 border-b border-border px-4 py-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
           <Fingerprint className="h-5 w-5" />
         </div>
-        <div>
-          <p className="text-sm font-bold text-slate-900">HR Attendance</p>
-          <p className="text-xs text-slate-500 truncate max-w-[140px]">{user?.email}</p>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-foreground">HR Attendance</p>
+          <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
         </div>
       </div>
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
-        <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Employee</p>
+        <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Employee</p>
         {EMPLOYEE_NAV.map((item) => (
-          <NavLink
-            key={item.href}
-            {...item}
-            active={isActive(item.href)}
-            onClick={() => setMobileOpen(false)}
-          />
+          <NavLink key={item.href} {...item} active={isActive(item.href)} onClick={() => setMobileOpen(false)} />
         ))}
         {isHr() && (
           <>
-            <p className="mt-4 px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">HR Admin</p>
+            <p className="mt-4 px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              HR Admin
+            </p>
             {HR_NAV.map((item) => (
-              <NavLink
-                key={item.href}
-                {...item}
-                active={isActive(item.href)}
-                onClick={() => setMobileOpen(false)}
-              />
+              <NavLink key={item.href} {...item} active={isActive(item.href)} onClick={() => setMobileOpen(false)} />
             ))}
           </>
         )}
       </nav>
-      <div className="border-t border-slate-200 p-3">
+      <div className="space-y-3 border-t border-border p-3">
+        <ThemeToggle className="w-full justify-between" />
         <Button
           variant="outline"
           className="w-full"
@@ -134,31 +137,41 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-slate-200 lg:bg-white">
+    <div className="min-h-screen bg-background">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col lg:border-r lg:border-border">
         {sidebar}
       </div>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <button className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} aria-label="Close menu" />
-          <div className="absolute left-0 top-0 h-full w-72 bg-white shadow-xl">{sidebar}</div>
+          <button className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setMobileOpen(false)} aria-label="Close menu" />
+          <div className="absolute left-0 top-0 h-full w-72 border-r border-border shadow-2xl">{sidebar}</div>
         </div>
       )}
 
       <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3 lg:px-8">
-          <button className="rounded-lg p-2 hover:bg-slate-100 lg:hidden" onClick={() => setMobileOpen(true)}>
+        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-border bg-card/80 px-4 py-3 backdrop-blur lg:px-8">
+          <button
+            className="rounded-lg p-2 text-muted-foreground hover:bg-muted lg:hidden"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Open menu"
+          >
             <Menu className="h-5 w-5" />
           </button>
-          <p className="text-sm font-semibold text-slate-800">
+          <p className="flex-1 truncate text-sm font-semibold text-foreground">
             {user?.full_name ?? user?.email ?? 'Workspace'}
           </p>
+          <div className="hidden sm:block lg:hidden">
+            <ThemeToggle />
+          </div>
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+            {initials}
+          </span>
         </header>
         <main className="mx-auto max-w-5xl px-4 py-6 lg:px-8">{children}</main>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-slate-200 bg-white lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-card lg:hidden">
         {EMPLOYEE_NAV.slice(0, 4).map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -168,7 +181,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               href={item.href}
               className={cn(
                 'flex flex-1 flex-col items-center gap-1 py-2 text-xs',
-                active ? 'text-indigo-600' : 'text-slate-500',
+                active ? 'text-primary' : 'text-muted-foreground',
               )}
             >
               <Icon className="h-5 w-5" />
@@ -181,7 +194,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             href="/hr"
             className={cn(
               'flex flex-1 flex-col items-center gap-1 py-2 text-xs',
-              pathname.startsWith('/hr') ? 'text-indigo-600' : 'text-slate-500',
+              pathname.startsWith('/hr') ? 'text-primary' : 'text-muted-foreground',
             )}
           >
             <Grid3X3 className="h-5 w-5" />

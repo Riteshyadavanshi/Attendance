@@ -1,5 +1,6 @@
 'use client';
 
+import { ArrowRight, MapPin, MessageSquare, UserPlus, Users, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -7,6 +8,15 @@ import { LateRankList } from '@/components/hr/LateLeaderboardList';
 import { HrGuard } from '@/components/layout/HrGuard';
 import { Card, StatCard } from '@/components/ui/card';
 import { attendanceApi, type LateTodayEntry } from '@/lib/api';
+
+const QUICK_LINKS = [
+  { href: '/hr/late-leaderboard', title: 'Late leaderboard', sub: 'All-time ranking', icon: Users },
+  { href: '/hr/employees', title: 'All employees', sub: 'Browse directory', icon: Users },
+  { href: '/hr/employees/register', title: 'Register employee', sub: 'Add new account', icon: UserPlus },
+  { href: '/hr/work-hours', title: 'Work hours', sub: 'Attendance rules', icon: Clock },
+  { href: '/hr/feedback', title: 'Feedback forms', sub: 'Create & analyze', icon: MessageSquare },
+  { href: '/hr/geofence', title: 'Geofence', sub: 'Office locations', icon: MapPin },
+];
 
 export default function HRDashboardPage() {
   const [stats, setStats] = useState<Record<string, unknown>>({});
@@ -21,40 +31,42 @@ export default function HRDashboardPage() {
     <HrGuard>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">HR Dashboard</h1>
-          <p className="text-sm text-slate-500">Today&apos;s overview</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">HR Dashboard</h1>
+          <p className="text-sm text-muted-foreground">Today&apos;s overview</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <StatCard label="Total employees" value={String(stats.total_employees ?? '—')} />
-          <StatCard label="Present today" value={String(stats.present ?? '—')} color="text-green-600" />
-          <StatCard label="Absent today" value={String(stats.absent ?? '—')} color="text-red-600" />
+          <StatCard label="Present today" value={String(stats.present ?? '—')} color="text-[var(--success)]" />
+          <StatCard label="Absent today" value={String(stats.absent ?? '—')} color="text-destructive" />
           <Link href="/hr/late-today">
-            <StatCard label="Late today" value={String(stats.late ?? '—')} color="text-amber-600" />
+            <StatCard label="Late today" value={String(stats.late ?? '—')} color="text-warning" />
           </Link>
         </div>
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Late today</p>
-            <Link href="/hr/late-today" className="text-sm font-semibold text-indigo-600">See all</Link>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Late today</p>
+            <Link href="/hr/late-today" className="text-sm font-semibold text-primary">See all</Link>
           </div>
           <LateRankList mode="today" items={lateToday} compact />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          {[
-            { href: '/hr/late-leaderboard', title: 'Late leaderboard', sub: 'All-time ranking' },
-            { href: '/hr/employees', title: 'All employees', sub: 'Browse directory' },
-            { href: '/hr/employees/register', title: 'Register employee', sub: 'Add new account' },
-            { href: '/hr/work-hours', title: 'Work hours', sub: 'Attendance rules' },
-            { href: '/hr/feedback', title: 'Feedback forms', sub: 'Create & analyze' },
-            { href: '/hr/geofence', title: 'Geofence', sub: 'Office locations' },
-          ].map((item) => (
-            <Link key={item.href} href={item.href}>
-              <Card className="transition hover:border-indigo-300">
-                <p className="font-semibold text-slate-900">{item.title}</p>
-                <p className="text-sm text-slate-500">{item.sub}</p>
-              </Card>
-            </Link>
-          ))}
+          {QUICK_LINKS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link key={item.href} href={item.href}>
+                <Card className="flex items-center gap-3 transition hover:border-primary/50">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-foreground">{item.title}</p>
+                    <p className="text-sm text-muted-foreground">{item.sub}</p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                </Card>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </HrGuard>

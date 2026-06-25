@@ -5,9 +5,9 @@ import { formatDateTime, formatTime } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 const RANK_COLORS: Record<number, { badge: string; soft: string }> = {
-  1: { badge: 'bg-yellow-500', soft: 'bg-yellow-50 border-yellow-400' },
-  2: { badge: 'bg-slate-400', soft: 'bg-slate-50 border-slate-300' },
-  3: { badge: 'bg-amber-600', soft: 'bg-orange-50 border-amber-500' },
+  1: { badge: 'bg-yellow-500', soft: 'border-yellow-400/60 bg-yellow-400/10' },
+  2: { badge: 'bg-slate-400', soft: 'border-slate-400/60 bg-slate-400/10' },
+  3: { badge: 'bg-amber-600', soft: 'border-amber-500/60 bg-amber-500/10' },
 };
 
 function RankBadge({ rank }: { rank: number }) {
@@ -16,7 +16,7 @@ function RankBadge({ rank }: { rank: number }) {
     <span
       className={cn(
         'inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white',
-        palette?.badge ?? 'bg-slate-300 text-slate-700',
+        palette?.badge ?? 'bg-muted text-muted-foreground',
       )}
     >
       {rank}
@@ -31,7 +31,7 @@ type Props =
 export function LateRankList({ mode, items, compact }: Props) {
   if (items.length === 0) {
     return (
-      <p className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+      <p className="rounded-lg border border-dashed border-border bg-card p-6 text-center text-sm text-muted-foreground">
         {mode === 'today' ? 'No one is late today' : 'No late records yet'}
       </p>
     );
@@ -46,19 +46,19 @@ export function LateRankList({ mode, items, compact }: Props) {
             <div
               key={entry.employee_id}
               className={cn(
-                'flex items-center gap-3 rounded-lg border bg-white p-3',
-                palette ? palette.soft : 'border-slate-200',
+                'flex items-center gap-3 rounded-lg border bg-card p-3',
+                palette ? palette.soft : 'border-border',
               )}
             >
               <RankBadge rank={entry.rank} />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-semibold text-slate-900">{entry.employee_name}</p>
-                <p className="text-xs text-slate-500">{entry.employee_code}</p>
+                <p className="truncate font-semibold text-foreground">{entry.employee_name}</p>
+                <p className="text-xs text-muted-foreground">{entry.employee_code}</p>
               </div>
               <div className="text-right text-sm">
-                <p className="font-bold text-amber-600">+{entry.minutes_late}m</p>
+                <p className="font-bold text-warning">+{entry.minutes_late}m</p>
                 {!compact && entry.check_in_at && (
-                  <p className="text-xs text-slate-500">{formatTime(entry.check_in_at)}</p>
+                  <p className="text-xs text-muted-foreground">{formatTime(entry.check_in_at)}</p>
                 )}
               </div>
             </div>
@@ -76,19 +76,19 @@ export function LateRankList({ mode, items, compact }: Props) {
           <div
             key={entry.employee_id}
             className={cn(
-              'flex items-center gap-3 rounded-lg border bg-white p-3',
-              palette ? palette.soft : 'border-slate-200',
+              'flex items-center gap-3 rounded-lg border bg-card p-3',
+              palette ? palette.soft : 'border-border',
             )}
           >
             <RankBadge rank={entry.rank} />
             <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold text-slate-900">{entry.employee_name}</p>
-              <p className="text-xs text-slate-500">{entry.employee_code}</p>
+              <p className="truncate font-semibold text-foreground">{entry.employee_name}</p>
+              <p className="text-xs text-muted-foreground">{entry.employee_code}</p>
             </div>
             <div className="text-right text-sm">
-              <p className="font-bold text-amber-600">{entry.late_days} days</p>
+              <p className="font-bold text-warning">{entry.late_days} days</p>
               {!compact && (
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   {entry.total_minutes_late}m total
                   {entry.last_late_at ? ` · ${formatDateTime(entry.last_late_at)}` : ''}
                 </p>

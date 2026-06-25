@@ -2,10 +2,20 @@
 
 import { useEffect, useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { faceApi } from '@/lib/api';
 import { formatDateTime } from '@/lib/format';
 import { useAuthStore } from '@/stores/authStore';
+
+function Row({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between border-b border-border py-3 last:border-0">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <div className="text-right font-semibold text-foreground">{value}</div>
+    </div>
+  );
+}
 
 export default function ProfilePage() {
   const user = useAuthStore((s) => s.user);
@@ -15,20 +25,39 @@ export default function ProfilePage() {
     faceApi.status().then(setFace).catch(() => setFace(null));
   }, []);
 
+  const initials = (user?.full_name ?? user?.email ?? 'U')
+    .split(' ')
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-900">Profile</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Profile</h1>
       <Card>
-        <p className="text-sm text-slate-500">Name</p>
-        <p className="font-semibold text-slate-900">{user?.full_name ?? '—'}</p>
-        <p className="mt-4 text-sm text-slate-500">Email</p>
-        <p className="font-semibold text-slate-900">{user?.email}</p>
-        <p className="mt-4 text-sm text-slate-500">Roles</p>
-        <p className="font-semibold capitalize text-slate-900">{user?.roles?.join(', ')}</p>
-        <p className="mt-4 text-sm text-slate-500">Face enrolled</p>
-        <p className="font-semibold text-slate-900">
-          {face?.face_enrolled ? `Yes · ${face.enrolled_at ? formatDateTime(face.enrolled_at) : ''}` : 'No'}
-        </p>
+        <div className="mb-4 flex items-center gap-3">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-lg font-bold text-primary">
+            {initials}
+          </span>
+          <div>
+            <p className="font-semibold text-foreground">{user?.full_name ?? '—'}</p>
+            <p className="text-sm text-muted-foreground">{user?.email}</p>
+          </div>
+        </div>
+        <Row label="Roles" value={<span className="capitalize">{user?.roles?.join(', ')}</span>} />
+        <Row
+          label="Face enrolled"
+          value={
+            face?.face_enrolled ? (
+              <Badge tone="success">
+                Yes{face.enrolled_at ? ` · ${formatDateTime(face.enrolled_at)}` : ''}
+              </Badge>
+            ) : (
+              <Badge tone="muted">No</Badge>
+            )
+          }
+        />
       </Card>
     </div>
   );

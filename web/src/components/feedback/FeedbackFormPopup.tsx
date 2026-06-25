@@ -49,12 +49,12 @@ export function FeedbackFormPopup() {
   if (!accessToken || isHr() || !current) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-        <h2 className="text-lg font-bold text-slate-900">New feedback form</h2>
-        <p className="mt-2 text-sm text-slate-600">{current.title}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-2xl">
+        <h2 className="text-lg font-bold text-foreground">New feedback form</h2>
+        <p className="mt-2 text-sm text-foreground">{current.title}</p>
         {current.description && (
-          <p className="mt-1 text-sm text-slate-500">{current.description}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{current.description}</p>
         )}
         <div className="mt-6 flex gap-2">
           <Button variant="outline" className="flex-1" onClick={onDismiss}>
@@ -64,7 +64,7 @@ export function FeedbackFormPopup() {
             Fill form
           </Button>
         </div>
-        <Link href="/feedback" className="mt-3 block text-center text-xs text-indigo-600">
+        <Link href="/feedback" className="mt-3 block text-center text-xs text-primary">
           View all forms
         </Link>
       </div>

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { HrGuard } from '@/components/layout/HrGuard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { employeesApi, type EmployeeRecord } from '@/lib/api';
 
 const PAGE_SIZE = 20;
@@ -41,26 +42,28 @@ export default function EmployeeListPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">All employees</h1>
-            <p className="text-sm text-slate-500">{total} total</p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">All employees</h1>
+            <p className="text-sm text-muted-foreground">{total} total</p>
           </div>
           <Link href="/hr/employees/register"><Button>Register</Button></Link>
         </div>
         {loading ? (
-          <p className="text-sm text-slate-500">Loading…</p>
+          <div className="space-y-2">
+            {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+          </div>
         ) : employees.length === 0 ? (
-          <Card><p className="text-sm text-slate-500">No employees found.</p></Card>
+          <Card><p className="text-sm text-muted-foreground">No employees found.</p></Card>
         ) : (
           <div className="space-y-2">
             {employees.map((e) => (
               <Card key={e.id}>
                 <div className="flex flex-wrap items-center gap-4">
-                  <span className="font-mono text-sm font-bold text-indigo-600">{e.employee_code}</span>
+                  <span className="font-mono text-sm font-bold text-primary">{e.employee_code}</span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-slate-900">{e.full_name}</p>
-                    <p className="text-sm text-slate-500">{e.email ?? '—'}</p>
+                    <p className="font-semibold text-foreground">{e.full_name}</p>
+                    <p className="text-sm text-muted-foreground">{e.email ?? '—'}</p>
                   </div>
-                  <p className="text-sm text-slate-600">{e.designation ?? '—'}</p>
+                  <p className="text-sm text-muted-foreground">{e.designation ?? '—'}</p>
                 </div>
               </Card>
             ))}

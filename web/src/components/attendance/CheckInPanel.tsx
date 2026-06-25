@@ -62,10 +62,10 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
 
   return (
     <Card>
-      <p className="text-sm text-slate-600">
+      <p className="text-sm text-muted-foreground">
         {mode === 'in' ? 'Check in with face verification and office geofence.' : 'Check out with face verification.'}
       </p>
-      <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-900">
+      <div className="mt-4 overflow-hidden rounded-xl border border-border bg-slate-950">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={`data:image/jpeg;base64,${preview}`} alt="Captured face" className="h-64 w-full object-cover" />
@@ -73,19 +73,19 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
           <video ref={videoRef} className="h-64 w-full object-cover" playsInline muted />
         )}
       </div>
-      {!ready && !camError && <p className="mt-2 text-sm text-slate-500">Starting camera…</p>}
-      {camError && <p className="mt-2 text-sm text-amber-600">{camError}</p>}
+      {!ready && !camError && <p className="mt-2 text-sm text-muted-foreground">Starting camera…</p>}
+      {camError && <p className="mt-2 text-sm text-warning">{camError}</p>}
       {coords && (
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-muted-foreground">
           GPS: {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}
           {coords.accuracy != null ? ` (±${Math.round(coords.accuracy)}m)` : ''}
         </p>
       )}
       {coords?.accuracy != null && coords.accuracy > 50 && (
-        <p className="mt-1 text-xs text-amber-600">GPS is weak. Try near a window, then refresh location.</p>
+        <p className="mt-1 text-xs text-warning">GPS is weak. Try near a window, then refresh location.</p>
       )}
-      {locError && <p className="mt-1 text-xs text-amber-600">{locError}</p>}
-      {message && <p className="mt-3 text-sm font-medium text-indigo-700">{message}</p>}
+      {locError && <p className="mt-1 text-xs text-warning">{locError}</p>}
+      {message && <p className="mt-3 text-sm font-medium text-primary">{message}</p>}
       <div className="mt-4 flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => getCurrentLocation()} disabled={locLoading}>
           Refresh GPS

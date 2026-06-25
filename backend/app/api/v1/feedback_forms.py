@@ -4,14 +4,20 @@ from uuid import UUID
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import CurrentUser, CurrentUserDep, DbSession, require_roles
 from app.core.exceptions import ForbiddenError, NotFoundError
 from app.core.roles import HR_ROLES
 from app.models import Employee, FeedbackForm, FeedbackFormEmployeeState, FeedbackFormSubmission
-from app.schemas import APIResponse, FeedbackFormCreate, FeedbackFormOut, FeedbackFormSubmit
+from app.schemas import (
+    APIResponse,
+    FeedbackFormCreate,
+    FeedbackFormOut,
+    FeedbackFormSubmit,
+    FeedbackFormUpdate,
+)
 
 router = APIRouter()
 
@@ -79,6 +85,63 @@ async def create_form(
     db.add(form)
     await db.flush()
     return APIResponse(data=_form_out(form, 0))
+
+
+async def _response_count(db: DbSession, form_id: UUID) -> int:
+    result = await db.execute(
+        select(func.count()).where(FeedbackFormSubmission.form_id == form_id)
+    )
+    return result.scalar_one()
+
+
+@router.patch("/{form_id}")
+async def update_form(
+    form_id: UUID,
+    body: FeedbackFormUpdate,
+    db: DbSession,
+    user: Annotated[CurrentUser, Depends(require_roles(*HR_ROLES))],
+):
+    form = await _get_org_form(db, form_id, user.organization_id)
+    count = await _response_count(db, form.id)
+
+    # Title / description / questions can only change while there are no responses.
+    structural_change = (
+        body.title is not None or body.description is not None or body.questions is not None
+    )
+    if structural_change and count > 0:
+        raise ForbiddenError(
+            "This form already has responses and can no longer be edited. You can only open or close it."
+        )
+
+    if body.title is not None:
+        form.title = body.title.strip()
+    if body.description is not None:
+        form.description = body.description
+    if body.questions is not None:
+        form.questions = [q.model_dump() for q in body.questions]
+    if body.is_active is not None:
+        form.is_active = body.is_active
+
+    await db.flush()
+    return APIResponse(data=_form_out(form, count))
+
+
+@router.delete("/{form_id}")
+async def delete_form(
+    form_id: UUID,
+    db: DbSession,
+    user: Annotated[CurrentUser, Depends(require_roles(*HR_ROLES))],
+):
+    form = await _get_org_form(db, form_id, user.organization_id)
+    await db.execute(
+        delete(FeedbackFormSubmission).where(FeedbackFormSubmission.form_id == form.id)
+    )
+    await db.execute(
+        delete(FeedbackFormEmployeeState).where(FeedbackFormEmployeeState.form_id == form.id)
+    )
+    await db.delete(form)
+    await db.flush()
+    return APIResponse(message="Feedback form deleted")
 
 
 @router.get("")

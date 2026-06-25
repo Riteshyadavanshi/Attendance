@@ -1,6 +1,7 @@
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 import { FeedbackFormPopup } from '@/components/feedback/FeedbackFormPopup';
@@ -30,7 +31,7 @@ function AuthHydration({ children }: { children: React.ReactNode }) {
   if (!ready) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-sm text-slate-500">Loading…</p>
+        <p className="text-sm text-muted-foreground">Loading…</p>
       </div>
     );
   }
@@ -42,11 +43,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthHydration>
-        {children}
-        <FeedbackFormPopup />
-      </AuthHydration>
-    </QueryClientProvider>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <QueryClientProvider client={queryClient}>
+        <AuthHydration>
+          {children}
+          <FeedbackFormPopup />
+        </AuthHydration>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

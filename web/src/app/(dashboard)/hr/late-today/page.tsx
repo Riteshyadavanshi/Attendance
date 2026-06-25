@@ -25,9 +25,9 @@ export default function LateTodayPage() {
   return (
     <HrGuard>
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-slate-900">Late today</h1>
-        {date && <p className="text-sm text-slate-500">{date}</p>}
-        {loading ? <p className="text-sm text-slate-500">Loading…</p> : <LateRankList mode="today" items={items} />}
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Late today</h1>
+        {date && <p className="text-sm text-muted-foreground">{date}</p>}
+        {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : <LateRankList mode="today" items={items} />}
       </div>
     </HrGuard>
   );

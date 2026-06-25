@@ -58,10 +58,10 @@ export default function WorkHoursPage() {
   return (
     <HrGuard>
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-slate-900">Work hours</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Work hours</h1>
         <Card>
           {loading ? (
-            <p className="text-sm text-slate-500">Loading…</p>
+            <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (
             <form onSubmit={onSave} className="space-y-4">
               <div>
@@ -80,7 +80,7 @@ export default function WorkHoursPage() {
                 <Label>Standard hours</Label>
                 <Input value={standardHours} onChange={(e) => setStandardHours(e.target.value)} />
               </div>
-              {message && <p className="text-sm text-indigo-700">{message}</p>}
+              {message && <p className="text-sm font-medium text-primary">{message}</p>}
               <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save rules'}</Button>
             </form>
           )}

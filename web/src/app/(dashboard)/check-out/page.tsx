@@ -10,7 +10,7 @@ export default function CheckOutPage() {
   if (!mounted) return null;
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-900">Check out</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Check out</h1>
       <CheckInPanel mode="out" />
     </div>
   );

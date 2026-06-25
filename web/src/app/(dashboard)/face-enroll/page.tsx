@@ -64,13 +64,13 @@ export default function FaceEnrollPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-900">Face enrollment</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Face enrollment</h1>
       <Card>
-        <p className="font-semibold text-indigo-700">
+        <p className="font-semibold text-primary">
           Step {step + 1}/{ANGLES.length}: {current.label}
         </p>
-        <p className="text-sm text-slate-500">{current.hint}</p>
-        <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-slate-900">
+        <p className="text-sm text-muted-foreground">{current.hint}</p>
+        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-slate-950">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={`data:image/jpeg;base64,${preview}`} alt="Preview" className="h-72 w-full object-cover" />
@@ -78,16 +78,16 @@ export default function FaceEnrollPage() {
             <video ref={videoRef} className="h-72 w-full object-cover" playsInline muted />
           )}
         </div>
-        {error && <p className="mt-2 text-sm text-amber-600">{error}</p>}
+        {error && <p className="mt-2 text-sm text-warning">{error}</p>}
         <div className="mt-3 flex justify-center gap-2">
           {ANGLES.map((a, i) => (
             <span
               key={a.key}
-              className={`h-2.5 w-2.5 rounded-full ${images[a.key] ? 'bg-green-500' : i === step ? 'bg-indigo-600' : 'bg-slate-300'}`}
+              className={`h-2.5 w-2.5 rounded-full ${images[a.key] ? 'bg-[var(--success)]' : i === step ? 'bg-primary' : 'bg-muted-foreground/40'}`}
             />
           ))}
         </div>
-        {message && <p className="mt-3 text-sm font-medium text-indigo-700">{message}</p>}
+        {message && <p className="mt-3 text-sm font-medium text-primary">{message}</p>}
         <div className="mt-4 flex flex-wrap gap-2">
           <Button onClick={onCapture} disabled={!ready || submitting}>
             {preview ? `Retake ${current.label}` : `Capture ${current.label}`}

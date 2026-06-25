@@ -282,6 +282,17 @@ export const feedbackFormsApi = {
   get: (id: string) => apiRequest<FeedbackFormRecord>(`/feedback-forms/${id}`),
   create: (payload: { title: string; description?: string; questions: FeedbackQuestion[] }) =>
     apiRequest<FeedbackFormRecord>('/feedback-forms', { method: 'POST', body: payload }),
+  update: (
+    id: string,
+    payload: {
+      title?: string;
+      description?: string | null;
+      questions?: FeedbackQuestion[];
+      is_active?: boolean;
+    },
+  ) => apiRequest<FeedbackFormRecord>(`/feedback-forms/${id}`, { method: 'PATCH', body: payload }),
+  remove: (id: string) =>
+    apiRequest<void>(`/feedback-forms/${id}`, { method: 'DELETE' }),
   dashboard: (id: string) => apiRequest<FeedbackFormDashboard>(`/feedback-forms/${id}/dashboard`),
   responses: async (id: string, page = 1, limit = 20) => {
     const data = await apiRequest<{

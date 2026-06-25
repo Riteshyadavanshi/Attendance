@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { HrGuard } from '@/components/layout/HrGuard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input, Label } from '@/components/ui/input';
+import { Input, Label, Select } from '@/components/ui/input';
 import { employeesApi } from '@/lib/api';
 
 export default function RegisterEmployeePage() {
@@ -40,7 +40,7 @@ export default function RegisterEmployeePage() {
   return (
     <HrGuard>
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-slate-900">Register employee</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Register employee</h1>
         <Card>
           <form onSubmit={onSubmit} className="space-y-4">
             {(['full_name', 'email', 'password', 'employee_code', 'designation', 'mobile'] as const).map((field) => (
@@ -55,16 +55,17 @@ export default function RegisterEmployeePage() {
             ))}
             <div>
               <Label>Role</Label>
-              <select
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              <Select
                 value={form.roles[0]}
                 onChange={(e) => setForm((f) => ({ ...f, roles: [e.target.value] }))}
               >
                 <option value="employee">Employee</option>
                 <option value="hr">HR</option>
-              </select>
+              </Select>
             </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            {error && (
+              <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+            )}
             <Button type="submit" disabled={loading}>{loading ? 'Saving…' : 'Create employee'}</Button>
           </form>
         </Card>
