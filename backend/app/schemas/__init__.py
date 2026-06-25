@@ -1,3 +1,4 @@
+from datetime import date
 from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field
@@ -71,6 +72,9 @@ class EmployeeCreate(BaseModel):
     department_id: UUID | None = None
     designation: str | None = None
     mobile: str | None = None
+    gender: str | None = None
+    date_of_birth: date | None = None
+    location: str | None = None
     roles: list[str] = ["employee"]
 
 
@@ -81,11 +85,39 @@ class EmployeeOut(BaseModel):
     designation: str | None
     mobile: str | None
     department_id: UUID | None
+    gender: str | None = None
+    date_of_birth: date | None = None
+    location: str | None = None
     face_enrolled: bool
     is_active: bool
     email: str | None = None
 
     model_config = {"from_attributes": True}
+
+
+class EmployeeProfileOut(BaseModel):
+    """Self-service profile used to autofill the face-capture form."""
+
+    id: UUID
+    employee_code: str
+    full_name: str
+    designation: str | None = None
+    department_id: UUID | None = None
+    department_name: str | None = None
+    gender: str | None = None
+    date_of_birth: date | None = None
+    age: int | None = None
+    location: str | None = None
+    email: str | None = None
+    face_enrolled: bool = False
+
+
+class EmployeeProfileUpdate(BaseModel):
+    """Fields an employee may edit on the capture form (employee_code is locked)."""
+
+    gender: str | None = None
+    date_of_birth: date | None = None
+    location: str | None = None
 
 
 class OfficeLocationCreate(BaseModel):

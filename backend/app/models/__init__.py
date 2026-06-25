@@ -119,6 +119,9 @@ class Employee(Base, TimestampMixin):
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
     designation: Mapped[str | None] = mapped_column(String(255))
     mobile: Mapped[str | None] = mapped_column(String(20))
+    gender: Mapped[str | None] = mapped_column(String(20))
+    date_of_birth: Mapped[date | None] = mapped_column(Date)
+    location: Mapped[str | None] = mapped_column(String(255))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     face_enrolled: Mapped[bool] = mapped_column(Boolean, default=False)
 

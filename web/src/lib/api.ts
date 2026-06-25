@@ -158,8 +158,29 @@ export const employeesApi = {
     full_name: string;
     designation?: string;
     mobile?: string;
+    gender?: string;
+    date_of_birth?: string;
+    location?: string;
     roles?: string[];
   }) => apiRequest<EmployeeRecord>('/employees', { method: 'POST', body: payload }),
+  me: () => apiRequest<EmployeeProfile>('/employees/me'),
+  updateMe: (payload: { gender?: string | null; date_of_birth?: string | null; location?: string | null }) =>
+    apiRequest<EmployeeProfile>('/employees/me', { method: 'PATCH', body: payload }),
+};
+
+export type EmployeeProfile = {
+  id: string;
+  employee_code: string;
+  full_name: string;
+  designation: string | null;
+  department_id: string | null;
+  department_name: string | null;
+  gender: string | null;
+  date_of_birth: string | null;
+  age: number | null;
+  location: string | null;
+  email: string | null;
+  face_enrolled: boolean;
 };
 
 export type LateTodayEntry = {

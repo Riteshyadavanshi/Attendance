@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -5,9 +6,16 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import CurrentUser, CurrentUserDep, DbSession, require_roles
+from app.core.exceptions import ForbiddenError, NotFoundError
 from app.core.roles import HR_ROLES
-from app.models import Employee, User
-from app.schemas import APIResponse, EmployeeCreate, EmployeeOut
+from app.models import Department, Employee, User
+from app.schemas import (
+    APIResponse,
+    EmployeeCreate,
+    EmployeeOut,
+    EmployeeProfileOut,
+    EmployeeProfileUpdate,
+)
 from app.services import OrganizationService
 
 router = APIRouter()
@@ -18,6 +26,65 @@ def _employee_out(employee: Employee) -> dict:
     out = EmployeeOut.model_validate(employee).model_dump()
     out["email"] = employee.user.email if employee.user else None
     return out
+
+
+def _compute_age(dob: date | None) -> int | None:
+    if not dob:
+        return None
+    today = date.today()
+    years = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    return years if years >= 0 else None
+
+
+def _profile_out(employee: Employee) -> dict:
+    out = EmployeeProfileOut(
+        id=employee.id,
+        employee_code=employee.employee_code,
+        full_name=employee.full_name,
+        designation=employee.designation,
+        department_id=employee.department_id,
+        department_name=employee.department.name if employee.department else None,
+        gender=employee.gender,
+        date_of_birth=employee.date_of_birth,
+        age=_compute_age(employee.date_of_birth),
+        location=employee.location,
+        email=employee.user.email if employee.user else None,
+        face_enrolled=employee.face_enrolled,
+    )
+    return out.model_dump(mode="json")
+
+
+async def _current_employee(db: DbSession, user: CurrentUser) -> Employee:
+    if not user.employee_id:
+        raise ForbiddenError("Employee profile required")
+    result = await db.execute(
+        select(Employee)
+        .options(selectinload(Employee.user), selectinload(Employee.department))
+        .where(Employee.id == user.employee_id)
+    )
+    employee = result.scalar_one_or_none()
+    if not employee:
+        raise NotFoundError("Employee")
+    return employee
+
+
+@router.get("/me")
+async def get_my_profile(db: DbSession, user: CurrentUserDep):
+    employee = await _current_employee(db, user)
+    return APIResponse(data=_profile_out(employee))
+
+
+@router.patch("/me")
+async def update_my_profile(body: EmployeeProfileUpdate, db: DbSession, user: CurrentUserDep):
+    employee = await _current_employee(db, user)
+    if body.gender is not None:
+        employee.gender = body.gender.strip() or None
+    if body.date_of_birth is not None:
+        employee.date_of_birth = body.date_of_birth
+    if body.location is not None:
+        employee.location = body.location.strip() or None
+    await db.flush()
+    return APIResponse(data=_profile_out(employee), message="Profile updated")
 
 
 @router.get("")

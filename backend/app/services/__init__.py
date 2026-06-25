@@ -513,6 +513,9 @@ class OrganizationService:
             full_name=data["full_name"],
             designation=data.get("designation"),
             mobile=data.get("mobile"),
+            gender=data.get("gender"),
+            date_of_birth=data.get("date_of_birth"),
+            location=data.get("location"),
         )
         db.add(employee)
         await db.flush()

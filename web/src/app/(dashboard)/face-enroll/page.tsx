@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import { IdentityForm, type IdentityFormHandle } from '@/components/face/IdentityForm';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
+import { useLiveFaceValidation } from '@/hooks/useFaceLandmarker';
 import { useWebcam } from '@/hooks/useWebcam';
 import { faceApi } from '@/lib/api';
 
@@ -21,6 +23,7 @@ type AngleKey = (typeof ANGLES)[number]['key'];
 export default function FaceEnrollPage() {
   const { videoRef, ready, error, start, captureBase64 } = useWebcam();
   const toast = useToast();
+  const identityRef = useRef<IdentityFormHandle>(null);
   const [step, setStep] = useState(0);
   const [images, setImages] = useState<Partial<Record<AngleKey, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -29,11 +32,27 @@ export default function FaceEnrollPage() {
   const allCaptured = ANGLES.every((a) => images[a.key]);
   const preview = images[current.key];
 
+  const { detectorError, hint, validateNow } = useLiveFaceValidation(
+    videoRef,
+    current.key,
+    ready && !preview,
+  );
+
   useEffect(() => {
     start();
   }, [start]);
 
   const onCapture = () => {
+    if (preview) {
+      // Retake: drop this angle's photo so the live camera returns.
+      setImages((prev) => ({ ...prev, [current.key]: undefined }));
+      return;
+    }
+    const err = validateNow();
+    if (err) {
+      toast.warning(err);
+      return;
+    }
     const b64 = captureBase64();
     if (!b64) return;
     setImages((prev) => ({ ...prev, [current.key]: b64 }));
@@ -47,6 +66,7 @@ export default function FaceEnrollPage() {
     }
     setSubmitting(true);
     try {
+      await identityRef.current?.save();
       await faceApi.enroll({
         front: images.front!,
         left: images.left!,
@@ -62,9 +82,19 @@ export default function FaceEnrollPage() {
     }
   };
 
+  const poseReady = !preview && !hint;
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-bold tracking-tight text-foreground">Face enrollment</h1>
+
+      <Card>
+        <IdentityForm
+          ref={identityRef}
+          description="Confirm your details before enrolling your face. Employee ID can't be changed."
+        />
+      </Card>
+
       <Card>
         <p className="font-semibold text-primary">
           Step {step + 1}/{ANGLES.length}: {current.label}
@@ -82,7 +112,19 @@ export default function FaceEnrollPage() {
             <video ref={videoRef} className="h-72 w-full object-cover transform-[scaleX(-1)]" playsInline muted />
           )}
         </div>
+
         {error && <p className="mt-2 text-sm text-warning">{error}</p>}
+        {!error && !preview && (
+          <p className={`mt-2 text-sm font-medium ${hint ? 'text-warning' : 'text-success'}`}>
+            {hint ?? 'Great — hold still and capture.'}
+          </p>
+        )}
+        {detectorError && (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Face check unavailable — capturing without pose validation.
+          </p>
+        )}
+
         <div className="mt-3 flex justify-center gap-2">
           {ANGLES.map((a, i) => (
             <span
@@ -92,7 +134,7 @@ export default function FaceEnrollPage() {
           ))}
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          <Button onClick={onCapture} disabled={!ready || submitting}>
+          <Button onClick={onCapture} disabled={!ready || submitting || (!preview && !poseReady)}>
             {preview ? `Retake ${current.label}` : `Capture ${current.label}`}
           </Button>
           {allCaptured && (

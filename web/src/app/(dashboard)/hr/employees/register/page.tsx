@@ -20,6 +20,9 @@ export default function RegisterEmployeePage() {
     full_name: '',
     designation: '',
     mobile: '',
+    gender: '',
+    date_of_birth: '',
+    location: '',
     roles: ['employee'] as string[],
   });
   const [loading, setLoading] = useState(false);
@@ -28,7 +31,12 @@ export default function RegisterEmployeePage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await employeesApi.create(form);
+      await employeesApi.create({
+        ...form,
+        gender: form.gender || undefined,
+        date_of_birth: form.date_of_birth || undefined,
+        location: form.location || undefined,
+      });
       toast.success('Employee registered.');
       router.push('/hr/employees');
     } catch (err) {
@@ -54,6 +62,37 @@ export default function RegisterEmployeePage() {
                 />
               </div>
             ))}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label>Gender</Label>
+                <Select
+                  value={form.gender}
+                  onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value }))}
+                >
+                  <option value="">Select…</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                  <option value="prefer_not_to_say">Prefer not to say</option>
+                </Select>
+              </div>
+              <div>
+                <Label>Date of birth</Label>
+                <Input
+                  type="date"
+                  value={form.date_of_birth}
+                  onChange={(e) => setForm((f) => ({ ...f, date_of_birth: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Location</Label>
+              <Input
+                value={form.location}
+                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                placeholder="City / office"
+              />
+            </div>
             <div>
               <Label>Role</Label>
               <Select
