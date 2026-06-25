@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/components/ui/toast';
 import {
   feedbackFormsApi,
   type FeedbackFormDashboard,
@@ -87,6 +88,7 @@ function TextStat({ q }: { q: FeedbackQuestionStat }) {
 export default function FeedbackDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const toast = useToast();
   const [form, setForm] = useState<FeedbackFormRecord | null>(null);
   const [dashboard, setDashboard] = useState<FeedbackFormDashboard | null>(null);
   const [responses, setResponses] = useState<FeedbackSubmission[]>([]);
@@ -125,6 +127,9 @@ export default function FeedbackDetailPage() {
     try {
       const updated = await feedbackFormsApi.update(id, { is_active: active });
       setForm(updated);
+      toast.success(active ? 'Form opened for responses.' : 'Form closed.');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Update failed');
     } finally {
       setTogglingActive(false);
     }
@@ -134,8 +139,10 @@ export default function FeedbackDetailPage() {
     setDeleting(true);
     try {
       await feedbackFormsApi.remove(id);
+      toast.success('Feedback form deleted.');
       router.push('/hr/feedback');
-    } finally {
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Delete failed');
       setDeleting(false);
     }
   };

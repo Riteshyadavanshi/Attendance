@@ -10,11 +10,13 @@ import { HrGuard } from '@/components/layout/HrGuard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/toast';
 import { feedbackFormsApi, type FeedbackFormRecord } from '@/lib/api';
 
 export default function EditFeedbackPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const toast = useToast();
   const [form, setForm] = useState<FeedbackFormRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -37,9 +39,12 @@ export default function EditFeedbackPage() {
         description: draft.description || null,
         questions: draft.questions,
       });
+      toast.success('Changes saved.');
       router.push(`/hr/feedback/${id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Update failed');
+      const msg = err instanceof Error ? err.message : 'Update failed';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   };

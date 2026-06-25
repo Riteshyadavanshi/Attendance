@@ -1,12 +1,12 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import CurrentUser, CurrentUserDep, DbSession, require_roles
 from app.core.roles import HR_ROLES
-from app.models import Employee
+from app.models import Employee, User
 from app.schemas import APIResponse, EmployeeCreate, EmployeeOut
 from app.services import OrganizationService
 
@@ -26,6 +26,7 @@ async def list_employees(
     user: CurrentUserDep,
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    search: str | None = Query(None, max_length=120),
 ):
     user.require_role(*HR_ROLES)
     offset = (page - 1) * limit
@@ -33,6 +34,18 @@ async def list_employees(
         Employee.organization_id == user.organization_id,
         Employee.is_active.is_(True),
     )
+
+    term = (search or "").strip()
+    if term:
+        pattern = f"%{term}%"
+        base = base.outerjoin(User, Employee.user).where(
+            or_(
+                Employee.full_name.ilike(pattern),
+                Employee.employee_code.ilike(pattern),
+                Employee.designation.ilike(pattern),
+                User.email.ilike(pattern),
+            )
+        )
 
     total_result = await db.execute(select(func.count()).select_from(base.subquery()))
     total = total_result.scalar_one()

@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/toast';
 import { feedbackFormsApi, type FeedbackFormRecord } from '@/lib/api';
 
 export default function HRFeedbackListPage() {
+  const toast = useToast();
   const [forms, setForms] = useState<FeedbackFormRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [toDelete, setToDelete] = useState<FeedbackFormRecord | null>(null);
@@ -40,7 +42,10 @@ export default function HRFeedbackListPage() {
     try {
       await feedbackFormsApi.remove(toDelete.id);
       setForms((prev) => prev.filter((f) => f.id !== toDelete.id));
+      toast.success('Feedback form deleted.');
       setToDelete(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Delete failed');
     } finally {
       setDeleting(false);
     }

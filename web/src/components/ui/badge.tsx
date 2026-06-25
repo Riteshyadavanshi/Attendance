@@ -5,8 +5,8 @@ type Tone = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'muted';
 const tones: Record<Tone, string> = {
   default: 'bg-muted text-foreground',
   primary: 'bg-primary/10 text-primary',
-  success: 'bg-[var(--success)]/12 text-[var(--success)]',
-  warning: 'bg-[var(--warning)]/12 text-[var(--warning)]',
+  success: 'bg-success/12 text-success',
+  warning: 'bg-warning/12 text-warning',
   danger: 'bg-destructive/12 text-destructive',
   muted: 'bg-muted text-muted-foreground',
 };

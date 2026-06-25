@@ -6,11 +6,13 @@ import { HrGuard } from '@/components/layout/HrGuard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
+import { useToast } from '@/components/ui/toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { officeLocationApi, type OfficeLocation } from '@/lib/api';
 
 export default function GeofencePage() {
   const { getCurrentLocation } = useGeolocation();
+  const toast = useToast();
   const [locations, setLocations] = useState<OfficeLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -18,7 +20,6 @@ export default function GeofencePage() {
   const [latitude, setLatitude] = useState('28.6139');
   const [longitude, setLongitude] = useState('77.2090');
   const [radius, setRadius] = useState('300');
-  const [message, setMessage] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -41,17 +42,16 @@ export default function GeofencePage() {
     const lng = parseFloat(longitude);
     const r = parseInt(radius, 10);
     if (!name.trim() || Number.isNaN(lat) || Number.isNaN(lng) || Number.isNaN(r)) {
-      setMessage('Enter valid name, coordinates, and radius.');
+      toast.warning('Enter valid name, coordinates, and radius.');
       return;
     }
     setSaving(true);
-    setMessage(null);
     try {
       await officeLocationApi.create({ name: name.trim(), latitude: lat, longitude: lng, radius_meters: r });
       await load();
-      setMessage('Geofence saved.');
+      toast.success('Geofence saved.');
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Create failed');
+      toast.error(err instanceof Error ? err.message : 'Create failed');
     } finally {
       setSaving(false);
     }
@@ -76,13 +76,12 @@ export default function GeofencePage() {
                   setLatitude(String(pos.latitude));
                   setLongitude(String(pos.longitude));
                 } catch {
-                  setMessage('Could not read GPS.');
+                  toast.warning('Could not read GPS.');
                 }
               }}
             >
               Use current GPS
             </button>
-            {message && <p className="text-sm font-medium text-primary">{message}</p>}
             <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Add location'}</Button>
           </form>
         </Card>

@@ -36,7 +36,7 @@ export default function HRDashboardPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <StatCard label="Total employees" value={String(stats.total_employees ?? '—')} />
-          <StatCard label="Present today" value={String(stats.present ?? '—')} color="text-[var(--success)]" />
+          <StatCard label="Present today" value={String(stats.present ?? '—')} color="text-success" />
           <StatCard label="Absent today" value={String(stats.absent ?? '—')} color="text-destructive" />
           <Link href="/hr/late-today">
             <StatCard label="Late today" value={String(stats.late ?? '—')} color="text-warning" />

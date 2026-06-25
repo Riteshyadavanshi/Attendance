@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input, Label, Select, Textarea } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/toast';
 import { feedbackFormsApi, type FeedbackFormRecord } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
@@ -26,7 +27,7 @@ function RatingInput({ value, onChange }: { value: number; onChange: (v: number)
           <Star
             className={cn(
               'h-8 w-8',
-              n <= value ? 'fill-[var(--warning)] text-[var(--warning)]' : 'text-muted-foreground/40',
+              n <= value ? 'fill-warning text-warning' : 'text-muted-foreground/40',
             )}
           />
         </button>
@@ -39,12 +40,12 @@ export default function SubmitFeedbackInner() {
   const { id } = useParams<{ id: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const toast = useToast();
   const title = searchParams.get('title');
   const [form, setForm] = useState<FeedbackFormRecord | null>(null);
   const [answers, setAnswers] = useState<Record<string, string | number>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
@@ -58,13 +59,13 @@ export default function SubmitFeedbackInner() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    setMessage(null);
     try {
       await feedbackFormsApi.submit(id, answers);
+      toast.success('Thanks for your feedback!');
       setDone(true);
       setTimeout(() => router.push('/feedback'), 1200);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : 'Submit failed');
+      toast.error(err instanceof Error ? err.message : 'Submit failed');
     } finally {
       setSubmitting(false);
     }
@@ -84,7 +85,7 @@ export default function SubmitFeedbackInner() {
   if (done || form.already_submitted) {
     return (
       <Card className="flex flex-col items-center gap-3 py-12 text-center">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--success)]/15 text-[var(--success)]">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15 text-success">
           <Star className="h-6 w-6" />
         </span>
         <p className="font-semibold text-foreground">Thanks for your feedback!</p>
@@ -140,9 +141,6 @@ export default function SubmitFeedbackInner() {
             )}
           </Card>
         ))}
-        {message && (
-          <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{message}</p>
-        )}
         <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? 'Submitting…' : 'Submit feedback'}
         </Button>

@@ -33,7 +33,9 @@ export function useWebcam() {
     setReady(false);
   }, []);
 
-  const captureBase64 = useCallback((): string | null => {
+  // Front cameras are shown mirrored (selfie view). Capture un-mirrored so the
+  // saved photo matches reality instead of being flipped left-to-right.
+  const captureBase64 = useCallback((mirror = false): string | null => {
     const video = videoRef.current;
     if (!video) return null;
     const canvas = document.createElement('canvas');
@@ -41,7 +43,11 @@ export function useWebcam() {
     canvas.height = video.videoHeight || 480;
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
-    ctx.drawImage(video, 0, 0);
+    if (mirror) {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     return dataUrl.split(',')[1] ?? null;
   }, []);

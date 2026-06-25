@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useToast } from '@/components/ui/toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useWebcam } from '@/hooks/useWebcam';
 import { attendanceApi } from '@/lib/api';
@@ -11,9 +12,9 @@ import { attendanceApi } from '@/lib/api';
 export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
   const { videoRef, ready, error: camError, start, captureBase64 } = useWebcam();
   const { coords, loading: locLoading, error: locError, getCurrentLocation } = useGeolocation();
+  const toast = useToast();
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     start();
@@ -27,7 +28,7 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
   const onSubmit = async () => {
     const faceImage = preview ?? captureBase64();
     if (!faceImage) {
-      setMessage('Capture your face first.');
+      toast.warning('Capture your face first.');
       return;
     }
     let location = coords;
@@ -35,12 +36,11 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
       try {
         location = await getCurrentLocation();
       } catch {
-        setMessage('Enable location for geofenced check-in.');
+        toast.warning('Enable location for geofenced check-in.');
         return;
       }
     }
     setSubmitting(true);
-    setMessage(null);
     try {
       const payload = {
         face_image: faceImage,
@@ -51,10 +51,10 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
       };
       if (mode === 'in') await attendanceApi.checkIn(payload);
       else await attendanceApi.checkOut(payload);
-      setMessage(mode === 'in' ? 'Checked in successfully!' : 'Checked out successfully!');
+      toast.success(mode === 'in' ? 'Checked in successfully!' : 'Checked out successfully!');
       setTimeout(() => window.location.reload(), 1200);
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Request failed');
+      toast.error(e instanceof Error ? e.message : 'Request failed');
     } finally {
       setSubmitting(false);
     }
@@ -68,9 +68,13 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-slate-950">
         {preview ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={`data:image/jpeg;base64,${preview}`} alt="Captured face" className="h-64 w-full object-cover" />
+          <img
+            src={`data:image/jpeg;base64,${preview}`}
+            alt="Captured face"
+            className="h-64 w-full object-cover transform-[scaleX(-1)]"
+          />
         ) : (
-          <video ref={videoRef} className="h-64 w-full object-cover" playsInline muted />
+          <video ref={videoRef} className="h-64 w-full object-cover transform-[scaleX(-1)]" playsInline muted />
         )}
       </div>
       {!ready && !camError && <p className="mt-2 text-sm text-muted-foreground">Starting camera…</p>}
@@ -85,7 +89,6 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
         <p className="mt-1 text-xs text-warning">GPS is weak. Try near a window, then refresh location.</p>
       )}
       {locError && <p className="mt-1 text-xs text-warning">{locError}</p>}
-      {message && <p className="mt-3 text-sm font-medium text-primary">{message}</p>}
       <div className="mt-4 flex flex-wrap gap-2">
         <Button variant="outline" onClick={() => getCurrentLocation()} disabled={locLoading}>
           Refresh GPS

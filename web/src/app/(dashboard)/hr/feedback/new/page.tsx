@@ -7,10 +7,12 @@ import { useState } from 'react';
 
 import { FeedbackFormBuilder, type FeedbackFormDraft } from '@/components/feedback/FeedbackFormBuilder';
 import { HrGuard } from '@/components/layout/HrGuard';
+import { useToast } from '@/components/ui/toast';
 import { feedbackFormsApi } from '@/lib/api';
 
 export default function CreateFeedbackPage() {
   const router = useRouter();
+  const toast = useToast();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,9 +25,12 @@ export default function CreateFeedbackPage() {
         description: draft.description || undefined,
         questions: draft.questions,
       });
+      toast.success('Feedback form published.');
       router.push(`/hr/feedback/${form.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Create failed');
+      const msg = err instanceof Error ? err.message : 'Create failed';
+      setError(msg);
+      toast.error(msg);
       setSubmitting(false);
     }
   };

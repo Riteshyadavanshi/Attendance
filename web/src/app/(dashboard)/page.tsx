@@ -62,7 +62,7 @@ export default function HomePage() {
           <p className="mt-2 text-3xl font-extrabold capitalize text-primary">{formatStatus(status)}</p>
           {checkedIn != null && checkedIn !== '' && (
             <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-              <LogIn className="h-4 w-4 text-[var(--success)]" /> In: {formatTime(today?.check_in_at)}
+              <LogIn className="h-4 w-4 text-success" /> In: {formatTime(today?.check_in_at)}
             </p>
           )}
           {checkedOut != null && checkedOut !== '' && (
@@ -89,7 +89,7 @@ export default function HomePage() {
           </Link>
         )}
         {Boolean(checkedIn) && Boolean(checkedOut) && (
-          <span className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--success)]/12 px-3 py-2 text-sm font-semibold text-[var(--success)]">
+          <span className="inline-flex items-center gap-1.5 rounded-lg bg-success/12 px-3 py-2 text-sm font-semibold text-success">
             <CheckCircle2 className="h-4 w-4" /> Day complete
           </span>
         )}

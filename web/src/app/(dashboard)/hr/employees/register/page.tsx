@@ -7,10 +7,12 @@ import { HrGuard } from '@/components/layout/HrGuard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input, Label, Select } from '@/components/ui/input';
+import { useToast } from '@/components/ui/toast';
 import { employeesApi } from '@/lib/api';
 
 export default function RegisterEmployeePage() {
   const router = useRouter();
+  const toast = useToast();
   const [form, setForm] = useState({
     email: '',
     password: 'Demo@123',
@@ -21,17 +23,16 @@ export default function RegisterEmployeePage() {
     roles: ['employee'] as string[],
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     try {
       await employeesApi.create(form);
+      toast.success('Employee registered.');
       router.push('/hr/employees');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Registration failed');
+      toast.error(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -63,9 +64,6 @@ export default function RegisterEmployeePage() {
                 <option value="hr">HR</option>
               </Select>
             </div>
-            {error && (
-              <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
-            )}
             <Button type="submit" disabled={loading}>{loading ? 'Saving…' : 'Create employee'}</Button>
           </form>
         </Card>

@@ -130,10 +130,10 @@ export type EmployeePage = {
 };
 
 export const employeesApi = {
-  list: async (page = 1, limit = 20): Promise<EmployeePage> => {
-    const data = await apiRequest<EmployeePage | EmployeeRecord[]>(
-      `/employees?page=${page}&limit=${limit}`,
-    );
+  list: async (page = 1, limit = 20, search = ''): Promise<EmployeePage> => {
+    const query = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (search.trim()) query.set('search', search.trim());
+    const data = await apiRequest<EmployeePage | EmployeeRecord[]>(`/employees?${query.toString()}`);
     if (Array.isArray(data)) {
       return {
         items: data,

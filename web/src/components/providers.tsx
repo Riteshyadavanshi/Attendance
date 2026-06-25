@@ -5,6 +5,7 @@ import { ThemeProvider } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 import { FeedbackFormPopup } from '@/components/feedback/FeedbackFormPopup';
+import { ToastProvider } from '@/components/ui/toast';
 import { useAuthStore } from '@/stores/authStore';
 
 function AuthHydration({ children }: { children: React.ReactNode }) {
@@ -45,10 +46,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <QueryClientProvider client={queryClient}>
-        <AuthHydration>
-          {children}
-          <FeedbackFormPopup />
-        </AuthHydration>
+        <ToastProvider>
+          <AuthHydration>
+            {children}
+            <FeedbackFormPopup />
+          </AuthHydration>
+        </ToastProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );

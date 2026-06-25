@@ -8,31 +8,32 @@ import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
+import { useToast } from '@/components/ui/toast';
 import { authApi } from '@/lib/api';
 import type { Role } from '@/lib/constants';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function LoginPage() {
   const router = useRouter();
+  const toast = useToast();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [email, setEmail] = useState('hr@demo.com');
   const [password, setPassword] = useState('Demo@123');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const onLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     try {
       const data = await authApi.login(email, password);
       setAuth(data.access_token, data.refresh_token, {
         ...data.user,
         roles: (data.user.roles ?? ['employee']) as Role[],
       });
+      toast.success('Welcome back!');
       router.replace('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      toast.error(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -64,9 +65,6 @@ export default function LoginPage() {
               <Label>Password</Label>
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
-            {error && (
-              <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
-            )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Sign in
