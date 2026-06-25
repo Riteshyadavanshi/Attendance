@@ -7,6 +7,22 @@ type RequestOptions = {
   auth?: boolean;
 };
 
+// Distinguishes an expired/invalid session (log the user out) from an ordinary
+// permission denial (e.g. an employee hitting an HR-only endpoint).
+function isSessionExpired(status: number, message: string): boolean {
+  if (status === 401) return true;
+  if (status === 403) return /not authenticated|invalid token|user not found/i.test(message);
+  return false;
+}
+
+function handleSessionExpired(): void {
+  if (typeof window === 'undefined') return;
+  useAuthStore.getState().logout();
+  if (window.location.pathname !== '/login') {
+    window.location.replace('/login');
+  }
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, auth = true } = options;
   const headers: Record<string, string> = {
@@ -27,7 +43,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const json = await response.json();
   if (!response.ok) {
     const message = json?.error?.message || json?.detail || 'Request failed';
-    throw new Error(typeof message === 'string' ? message : JSON.stringify(message));
+    const msg = typeof message === 'string' ? message : JSON.stringify(message);
+    if (auth && isSessionExpired(response.status, msg)) {
+      handleSessionExpired();
+      throw new Error('Your session expired. Please sign in again.');
+    }
+    throw new Error(msg);
   }
   return json.data as T;
 }
