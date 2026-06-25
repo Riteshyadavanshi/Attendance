@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,8 @@ import { faceApi } from '../../services/api';
 import type { MainStackParamList } from '../../navigation/MainTabs';
 import { useTheme } from '../../hooks/useTheme';
 import { StackShell } from '../../components/layout/StackShell';
+import { IdentityForm, type IdentityFormHandle } from '../../components/face/IdentityForm';
+import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { radii, spacing } from '../../theme/colors';
 
@@ -25,6 +27,7 @@ type Props = NativeStackScreenProps<MainStackParamList, 'FaceEnroll'>;
 export function FaceEnrollScreen({ navigation }: Props) {
   const { colors } = useTheme();
   const { capturing, captureFace } = useFaceCapture();
+  const identityRef = useRef<IdentityFormHandle>(null);
   const [step, setStep] = useState(0);
   const [images, setImages] = useState<Partial<Record<AngleKey, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -47,6 +50,7 @@ export function FaceEnrollScreen({ navigation }: Props) {
     }
     setSubmitting(true);
     try {
+      await identityRef.current?.save();
       await faceApi.enroll({
         front: images.front!,
         left: images.left!,
@@ -64,6 +68,10 @@ export function FaceEnrollScreen({ navigation }: Props) {
 
   return (
     <StackShell title="Face Enrollment">
+      <Card style={{ marginBottom: spacing.md }}>
+        <IdentityForm ref={identityRef} />
+      </Card>
+
       <Text style={[styles.step, { color: colors.primary }]}>
         Step {step + 1}/{ANGLES.length}: {current.label}
       </Text>

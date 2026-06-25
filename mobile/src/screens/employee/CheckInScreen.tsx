@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,8 @@ import { attendanceApi } from '../../services/api';
 import type { MainStackParamList } from '../../navigation/MainTabs';
 import { useTheme } from '../../hooks/useTheme';
 import { StackShell } from '../../components/layout/StackShell';
+import { IdentityForm, type IdentityFormHandle } from '../../components/face/IdentityForm';
+import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { radii, spacing } from '../../theme/colors';
 
@@ -19,6 +21,7 @@ export function CheckInScreen({ route, navigation }: Props) {
   const { colors } = useTheme();
   const { capturing, lastImage, captureFace } = useFaceCapture();
   const { coords, loading: locLoading, error: locError, getCurrentLocation } = useLocation();
+  const identityRef = useRef<IdentityFormHandle>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -56,6 +59,7 @@ export function CheckInScreen({ route, navigation }: Props) {
         accuracy: location.accuracy,
         device_info: { screen: 'CheckInScreen' },
       };
+      await identityRef.current?.save();
       if (mode === 'in') {
         await attendanceApi.checkIn(payload);
         Alert.alert('Success', 'Checked in successfully');
@@ -78,6 +82,10 @@ export function CheckInScreen({ route, navigation }: Props) {
       <Text style={[styles.sub, { color: colors.textMuted }]}>
         Capture your face and confirm office geofence.
       </Text>
+
+      <Card style={{ marginBottom: spacing.md }}>
+        <IdentityForm ref={identityRef} />
+      </Card>
 
       <View style={[styles.previewBox, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
         {lastImage ? (
