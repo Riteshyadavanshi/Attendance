@@ -14,35 +14,75 @@ from app.schemas import APIResponse, OfficeLocationCreate, OfficeLocationOut, Of
 router = APIRouter()
 
 
+@router.get("/current")
+async def get_current_office_location(db: DbSession, user: CurrentUserDep):
+    """Single office geofence for the organization (readable by any authenticated user)."""
+    result = await db.execute(
+        select(OfficeLocation)
+        .where(
+            OfficeLocation.organization_id == user.organization_id,
+            OfficeLocation.is_active.is_(True),
+        )
+        .order_by(OfficeLocation.id)
+        .limit(1)
+    )
+    loc = result.scalar_one_or_none()
+    return APIResponse(data=_loc_data(loc) if loc else None)
+
+
 @router.get("")
 async def list_office_locations(db: DbSession, user: CurrentUserDep):
     user.require_role(*HR_ROLES)
+    result = await db.execute(
+        select(OfficeLocation)
+        .where(
+            OfficeLocation.organization_id == user.organization_id,
+            OfficeLocation.is_active.is_(True),
+        )
+        .order_by(OfficeLocation.id)
+        .limit(1)
+    )
+    loc = result.scalar_one_or_none()
+    return APIResponse(data=[_loc_data(loc)] if loc else [])
+
+
+@router.post("")
+async def upsert_office_location(
+    body: OfficeLocationCreate,
+    db: DbSession,
+    user: Annotated[CurrentUser, Depends(require_roles(*HR_ROLES))],
+):
+    """Create or update the single office geofence for this organization."""
     result = await db.execute(
         select(OfficeLocation).where(
             OfficeLocation.organization_id == user.organization_id,
             OfficeLocation.is_active.is_(True),
         )
     )
-    locations = result.scalars().all()
-    return APIResponse(data=[_loc_data(loc) for loc in locations])
+    active = result.scalars().all()
+    loc = active[0] if active else None
 
+    # Deactivate any extra legacy rows so only one geofence remains.
+    for extra in active[1:]:
+        extra.is_active = False
 
-@router.post("")
-async def create_office_location(
-    body: OfficeLocationCreate,
-    db: DbSession,
-    user: Annotated[CurrentUser, Depends(require_roles(*HR_ROLES))],
-):
-    loc = OfficeLocation(
-        organization_id=user.organization_id,
-        name=body.name,
-        latitude=body.latitude,
-        longitude=body.longitude,
-        radius_meters=body.radius_meters,
-    )
-    db.add(loc)
+    if loc:
+        loc.name = body.name
+        loc.latitude = body.latitude
+        loc.longitude = body.longitude
+        loc.radius_meters = body.radius_meters
+    else:
+        loc = OfficeLocation(
+            organization_id=user.organization_id,
+            name=body.name,
+            latitude=body.latitude,
+            longitude=body.longitude,
+            radius_meters=body.radius_meters,
+        )
+        db.add(loc)
+
     await db.flush()
-    return APIResponse(data=_loc_data(loc))
+    return APIResponse(data=_loc_data(loc), message="Geofence saved")
 
 
 def _loc_data(loc: OfficeLocation) -> dict:

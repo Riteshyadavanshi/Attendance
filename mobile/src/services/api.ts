@@ -229,7 +229,8 @@ export const attendanceRulesApi = {
 
 export const officeLocationApi = {
   list: () => apiRequest<OfficeLocation[]>('/office-locations'),
-  create: (payload: {
+  current: () => apiRequest<OfficeLocation | null>('/office-locations/current'),
+  save: (payload: {
     name: string;
     latitude: number;
     longitude: number;

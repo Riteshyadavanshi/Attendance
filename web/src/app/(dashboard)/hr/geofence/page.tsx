@@ -6,14 +6,14 @@ import { HrGuard } from '@/components/layout/HrGuard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input, Label } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { officeLocationApi, type OfficeLocation } from '@/lib/api';
+import { officeLocationApi } from '@/lib/api';
 
 export default function GeofencePage() {
   const { getCurrentLocation } = useGeolocation();
   const toast = useToast();
-  const [locations, setLocations] = useState<OfficeLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('Main Office');
@@ -21,22 +21,28 @@ export default function GeofencePage() {
   const [longitude, setLongitude] = useState('77.2090');
   const [radius, setRadius] = useState('300');
 
-  const load = async () => {
-    setLoading(true);
-    try {
-      setLocations(await officeLocationApi.list());
-    } catch {
-      setLocations([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    load();
+    let active = true;
+    officeLocationApi
+      .list()
+      .then((items) => {
+        if (!active) return;
+        const loc = items[0];
+        if (loc) {
+          setName(loc.name);
+          setLatitude(String(loc.latitude));
+          setLongitude(String(loc.longitude));
+          setRadius(String(loc.radius_meters));
+        }
+      })
+      .catch(() => {})
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const onCreate = async (e: React.FormEvent) => {
+  const onSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const lat = parseFloat(latitude);
     const lng = parseFloat(longitude);
@@ -47,11 +53,10 @@ export default function GeofencePage() {
     }
     setSaving(true);
     try {
-      await officeLocationApi.create({ name: name.trim(), latitude: lat, longitude: lng, radius_meters: r });
-      await load();
+      await officeLocationApi.save({ name: name.trim(), latitude: lat, longitude: lng, radius_meters: r });
       toast.success('Geofence saved.');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Create failed');
+      toast.error(err instanceof Error ? err.message : 'Save failed');
     } finally {
       setSaving(false);
     }
@@ -60,47 +65,58 @@ export default function GeofencePage() {
   return (
     <HrGuard>
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Geofence settings</h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Office geofence</h1>
+          <p className="text-sm text-muted-foreground">
+            One office boundary for check-in and check-out. Employees must be inside this radius.
+          </p>
+        </div>
         <Card>
-          <form onSubmit={onCreate} className="space-y-3">
-            <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-            <div><Label>Latitude</Label><Input value={latitude} onChange={(e) => setLatitude(e.target.value)} /></div>
-            <div><Label>Longitude</Label><Input value={longitude} onChange={(e) => setLongitude(e.target.value)} /></div>
-            <div><Label>Radius (m)</Label><Input value={radius} onChange={(e) => setRadius(e.target.value)} /></div>
-            <button
-              type="button"
-              className="text-sm font-semibold text-primary"
-              onClick={async () => {
-                try {
-                  const pos = await getCurrentLocation();
-                  setLatitude(String(pos.latitude));
-                  setLongitude(String(pos.longitude));
-                } catch {
-                  toast.warning('Could not read GPS.');
-                }
-              }}
-            >
-              Use current GPS
-            </button>
-            <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Add location'}</Button>
-          </form>
+          {loading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : (
+            <form onSubmit={onSave} className="space-y-3">
+              <div>
+                <Label>Name</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div>
+                <Label>Latitude</Label>
+                <Input value={latitude} onChange={(e) => setLatitude(e.target.value)} />
+              </div>
+              <div>
+                <Label>Longitude</Label>
+                <Input value={longitude} onChange={(e) => setLongitude(e.target.value)} />
+              </div>
+              <div>
+                <Label>Radius (meters)</Label>
+                <Input value={radius} onChange={(e) => setRadius(e.target.value)} />
+              </div>
+              <button
+                type="button"
+                className="text-sm font-semibold text-primary"
+                onClick={async () => {
+                  try {
+                    const pos = await getCurrentLocation();
+                    setLatitude(String(pos.latitude));
+                    setLongitude(String(pos.longitude));
+                  } catch {
+                    toast.warning('Could not read GPS.');
+                  }
+                }}
+              >
+                Use current GPS
+              </button>
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Saving…' : 'Save geofence'}
+              </Button>
+            </form>
+          )}
         </Card>
-        {loading ? (
-          <p className="text-sm text-muted-foreground">Loading locations…</p>
-        ) : locations.length === 0 ? (
-          <Card><p className="text-sm text-muted-foreground">No locations yet.</p></Card>
-        ) : (
-          <div className="space-y-2">
-            {locations.map((loc) => (
-              <Card key={loc.id}>
-                <p className="font-semibold text-foreground">{loc.name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {loc.latitude.toFixed(5)}, {loc.longitude.toFixed(5)} · {loc.radius_meters}m
-                </p>
-              </Card>
-            ))}
-          </div>
-        )}
       </div>
     </HrGuard>
   );

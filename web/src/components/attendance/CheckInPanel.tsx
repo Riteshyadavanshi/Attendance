@@ -1,29 +1,49 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { IdentityForm, type IdentityFormHandle } from '@/components/face/IdentityForm';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
 import { useLiveFaceValidation } from '@/hooks/useFaceLandmarker';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useWebcam } from '@/hooks/useWebcam';
-import { attendanceApi } from '@/lib/api';
+import { attendanceApi, officeLocationApi, type OfficeLocation } from '@/lib/api';
+import { distanceMeters, isInsideGeofence } from '@/lib/geofence';
 
 export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
   const { videoRef, ready, error: camError, start, captureBase64 } = useWebcam();
   const { coords, loading: locLoading, error: locError, getCurrentLocation } = useGeolocation();
   const toast = useToast();
-  const identityRef = useRef<IdentityFormHandle>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [geofence, setGeofence] = useState<OfficeLocation | null>(null);
 
   const { detectorError, hint, validateNow } = useLiveFaceValidation(videoRef, 'presence', ready && !preview);
 
   useEffect(() => {
     start();
   }, [start]);
+
+  useEffect(() => {
+    officeLocationApi.current().then(setGeofence).catch(() => setGeofence(null));
+  }, []);
+
+  const distanceToOffice =
+    coords && geofence
+      ? Math.round(distanceMeters(coords.latitude, coords.longitude, geofence.latitude, geofence.longitude))
+      : null;
+
+  const insideGeofence =
+    coords && geofence
+      ? isInsideGeofence(
+          coords.latitude,
+          coords.longitude,
+          geofence.latitude,
+          geofence.longitude,
+          geofence.radius_meters,
+        )
+      : null;
 
   const onCapture = () => {
     if (preview) {
@@ -61,6 +81,19 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
         return;
       }
     }
+    if (geofence && !isInsideGeofence(
+      location.latitude,
+      location.longitude,
+      geofence.latitude,
+      geofence.longitude,
+      geofence.radius_meters,
+    )) {
+      const dist = Math.round(
+        distanceMeters(location.latitude, location.longitude, geofence.latitude, geofence.longitude),
+      );
+      toast.warning(`You are ${dist}m from the office. Must be within ${geofence.radius_meters}m to ${mode === 'in' ? 'check in' : 'check out'}.`);
+      return;
+    }
     setSubmitting(true);
     try {
       const payload = {
@@ -70,7 +103,6 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
         accuracy: location.accuracy ?? undefined,
         device_info: { screen: 'WebCheckIn' },
       };
-      await identityRef.current?.save();
       if (mode === 'in') await attendanceApi.checkIn(payload);
       else await attendanceApi.checkOut(payload);
       toast.success(mode === 'in' ? 'Checked in successfully!' : 'Checked out successfully!');
@@ -82,15 +114,13 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
     }
   };
 
+  const canSubmit = insideGeofence !== false && !submitting;
+
   return (
     <Card>
       <p className="text-sm text-muted-foreground">
         {mode === 'in' ? 'Check in with face verification and office geofence.' : 'Check out with face verification.'}
       </p>
-
-      <div className="mt-4">
-        <IdentityForm ref={identityRef} title="Your details" />
-      </div>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-slate-950">
         {preview ? (
@@ -116,11 +146,25 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
           Face check unavailable — capturing without validation.
         </p>
       )}
-      {coords && (
+      {geofence && (
         <p className="mt-2 text-xs text-muted-foreground">
+          Office: {geofence.name} · allowed radius {geofence.radius_meters}m
+        </p>
+      )}
+      {coords && (
+        <p className="mt-1 text-xs text-muted-foreground">
           GPS: {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}
           {coords.accuracy != null ? ` (±${Math.round(coords.accuracy)}m)` : ''}
+          {distanceToOffice != null ? ` · ${distanceToOffice}m from office` : ''}
         </p>
+      )}
+      {insideGeofence === false && geofence && (
+        <p className="mt-1 text-xs font-medium text-warning">
+          You are outside the office geofence. Move within {geofence.radius_meters}m to {mode === 'in' ? 'check in' : 'check out'}.
+        </p>
+      )}
+      {insideGeofence === true && (
+        <p className="mt-1 text-xs font-medium text-success">Inside office geofence.</p>
       )}
       {coords?.accuracy != null && coords.accuracy > 50 && (
         <p className="mt-1 text-xs text-warning">GPS is weak. Try near a window, then refresh location.</p>
@@ -137,7 +181,11 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
         >
           {preview ? 'Retake face' : 'Capture face'}
         </Button>
-        <Button variant={mode === 'out' ? 'danger' : 'primary'} onClick={onSubmit} disabled={submitting}>
+        <Button
+          variant={mode === 'out' ? 'danger' : 'primary'}
+          onClick={onSubmit}
+          disabled={!canSubmit || (insideGeofence === null && !!geofence)}
+        >
           {submitting ? 'Submitting…' : mode === 'in' ? 'Confirm check in' : 'Confirm check out'}
         </Button>
       </div>

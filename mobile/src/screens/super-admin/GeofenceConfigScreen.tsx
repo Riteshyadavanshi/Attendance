@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Pressable,
   StyleSheet,
   Text,
@@ -12,7 +11,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 
 import { useLocation } from '../../hooks/useLocation';
-import { officeLocationApi, type OfficeLocation } from '../../services/api';
+import { officeLocationApi } from '../../services/api';
 import { useTheme } from '../../hooks/useTheme';
 import { StackShell } from '../../components/layout/StackShell';
 import { Card } from '../../components/ui/Card';
@@ -22,7 +21,6 @@ import { radii, spacing } from '../../theme/colors';
 export function GeofenceConfigScreen() {
   const { colors } = useTheme();
   const { getCurrentLocation } = useLocation();
-  const [locations, setLocations] = useState<OfficeLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('Main Office');
@@ -34,7 +32,13 @@ export function GeofenceConfigScreen() {
     setLoading(true);
     try {
       const data = await officeLocationApi.list();
-      setLocations(data);
+      const loc = data[0];
+      if (loc) {
+        setName(loc.name);
+        setLatitude(String(loc.latitude));
+        setLongitude(String(loc.longitude));
+        setRadius(String(loc.radius_meters));
+      }
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : 'Failed to load');
     } finally {
@@ -46,7 +50,7 @@ export function GeofenceConfigScreen() {
 
   const inputStyle = [styles.input, { backgroundColor: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }];
 
-  const onCreate = async () => {
+  const onSave = async () => {
     const lat = parseFloat(latitude);
     const lng = parseFloat(longitude);
     const r = parseInt(radius, 10);
@@ -56,60 +60,48 @@ export function GeofenceConfigScreen() {
     }
     setSaving(true);
     try {
-      await officeLocationApi.create({ name: name.trim(), latitude: lat, longitude: lng, radius_meters: r });
-      await load();
-      Alert.alert('Created', 'Office geofence saved.');
+      await officeLocationApi.save({ name: name.trim(), latitude: lat, longitude: lng, radius_meters: r });
+      Alert.alert('Saved', 'Office geofence updated.');
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'Create failed');
+      Alert.alert('Error', e instanceof Error ? e.message : 'Save failed');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <StackShell title="Geofencing" scroll={false}>
+    <StackShell title="Office Geofence">
+      <Text style={[styles.sub, { color: colors.textMuted }]}>
+        One office boundary for all check-ins. Employees must be inside this radius.
+      </Text>
       <Card>
-        <TextInput style={inputStyle} value={name} onChangeText={setName} placeholder="Location name" placeholderTextColor={colors.textMuted} />
-        <TextInput style={inputStyle} value={latitude} onChangeText={setLatitude} placeholder="Latitude" placeholderTextColor={colors.textMuted} keyboardType="numeric" />
-        <TextInput style={inputStyle} value={longitude} onChangeText={setLongitude} placeholder="Longitude" placeholderTextColor={colors.textMuted} keyboardType="numeric" />
-        <TextInput style={inputStyle} value={radius} onChangeText={setRadius} placeholder="Radius (m)" placeholderTextColor={colors.textMuted} keyboardType="numeric" />
-        <Pressable onPress={async () => {
-          try {
-            const pos = await getCurrentLocation(false);
-            setLatitude(String(pos.latitude));
-            setLongitude(String(pos.longitude));
-          } catch { Alert.alert('GPS', 'Could not read location.'); }
-        }}>
-          <Text style={[styles.link, { color: colors.primary }]}>Use current GPS</Text>
-        </Pressable>
-        <Button label={saving ? 'Saving...' : 'Add Location'} onPress={onCreate} disabled={saving} />
+        {loading ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
+          <>
+            <TextInput style={inputStyle} value={name} onChangeText={setName} placeholder="Location name" placeholderTextColor={colors.textMuted} />
+            <TextInput style={inputStyle} value={latitude} onChangeText={setLatitude} placeholder="Latitude" placeholderTextColor={colors.textMuted} keyboardType="numeric" />
+            <TextInput style={inputStyle} value={longitude} onChangeText={setLongitude} placeholder="Longitude" placeholderTextColor={colors.textMuted} keyboardType="numeric" />
+            <TextInput style={inputStyle} value={radius} onChangeText={setRadius} placeholder="Radius (m)" placeholderTextColor={colors.textMuted} keyboardType="numeric" />
+            <Pressable onPress={async () => {
+              try {
+                const pos = await getCurrentLocation(false);
+                setLatitude(String(pos.latitude));
+                setLongitude(String(pos.longitude));
+              } catch { Alert.alert('GPS', 'Could not read location.'); }
+            }}>
+              <Text style={[styles.link, { color: colors.primary }]}>Use current GPS</Text>
+            </Pressable>
+            <Button label={saving ? 'Saving...' : 'Save geofence'} onPress={onSave} disabled={saving} />
+          </>
+        )}
       </Card>
-
-      {loading ? (
-        <ActivityIndicator color={colors.primary} style={{ marginTop: 24 }} />
-      ) : (
-        <FlatList
-          data={locations}
-          keyExtractor={(item) => item.id}
-          style={{ marginTop: spacing.md }}
-          ListEmptyComponent={<Text style={[styles.empty, { color: colors.textMuted }]}>No locations yet</Text>}
-          renderItem={({ item }) => (
-            <Card style={{ marginBottom: spacing.sm }}>
-              <Text style={[styles.locName, { color: colors.text }]}>{item.name}</Text>
-              <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-                {item.latitude.toFixed(5)}, {item.longitude.toFixed(5)} · {item.radius_meters}m
-              </Text>
-            </Card>
-          )}
-        />
-      )}
     </StackShell>
   );
 }
 
 const styles = StyleSheet.create({
+  sub: { marginBottom: spacing.md, fontSize: 14 },
   input: { borderWidth: 1, borderRadius: radii.sm, padding: 12, marginBottom: spacing.sm, fontSize: 15 },
   link: { fontWeight: '600', marginBottom: spacing.md },
-  empty: { textAlign: 'center', marginTop: spacing.lg },
-  locName: { fontWeight: '700', fontSize: 16 },
 });
