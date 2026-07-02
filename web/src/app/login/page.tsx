@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input, Label } from '@/components/ui/input';
+import { FormField, Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
 import { authApi } from '@/lib/api';
 import type { Role } from '@/lib/constants';
@@ -55,16 +55,14 @@ export default function LoginPage() {
             <p className="text-sm text-muted-foreground">Sign in to your workspace</p>
           </div>
         </div>
-        <Card className="p-6">
-          <form onSubmit={onLogin} className="space-y-4">
-            <div>
-              <Label>Email</Label>
+        <Card>
+          <form onSubmit={onLogin} className="flex flex-col gap-4">
+            <FormField label="Email">
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div>
-              <Label>Password</Label>
+            </FormField>
+            <FormField label="Password">
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </div>
+            </FormField>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               Sign in

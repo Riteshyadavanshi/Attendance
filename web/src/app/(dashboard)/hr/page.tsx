@@ -1,11 +1,12 @@
 'use client';
 
-import { ArrowRight, MapPin, MessageSquare, UserPlus, Users, Clock } from 'lucide-react';
+import { ArrowRight, Clock, MapPin, MessageSquare, UserPlus, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { LateRankList } from '@/components/hr/LateLeaderboardList';
 import { HrGuard } from '@/components/layout/HrGuard';
+import { PageHeader } from '@/components/layout/page';
 import { Card, StatCard } from '@/components/ui/card';
 import { attendanceApi, type LateTodayEntry } from '@/lib/api';
 
@@ -29,11 +30,9 @@ export default function HRDashboardPage() {
 
   return (
     <HrGuard>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">HR Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Today&apos;s overview</p>
-        </div>
+      <>
+        <PageHeader title="HR Dashboard" description="Today's overview" />
+
         <div className="grid gap-4 sm:grid-cols-2">
           <StatCard label="Total employees" value={String(stats.total_employees ?? '—')} />
           <StatCard label="Present today" value={String(stats.present ?? '—')} color="text-success" />
@@ -42,33 +41,37 @@ export default function HRDashboardPage() {
             <StatCard label="Late today" value={String(stats.late ?? '—')} color="text-warning" />
           </Link>
         </div>
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Late today</p>
-            <Link href="/hr/late-today" className="text-sm font-semibold text-primary">See all</Link>
+
+        <section className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Late today</h2>
+            <Link href="/hr/late-today" className="text-sm font-semibold text-primary">
+              See all
+            </Link>
           </div>
           <LateRankList mode="today" items={lateToday} compact />
-        </div>
+        </section>
+
         <div className="grid gap-3 sm:grid-cols-2">
           {QUICK_LINKS.map((item) => {
             const Icon = item.icon;
             return (
               <Link key={item.href} href={item.href}>
                 <Card className="flex items-center gap-3 transition hover:border-primary/50">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-foreground">{item.title}</p>
                     <p className="text-sm text-muted-foreground">{item.sub}</p>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
                 </Card>
               </Link>
             );
           })}
         </div>
-      </div>
+      </>
     </HrGuard>
   );
 }

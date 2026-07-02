@@ -19,7 +19,7 @@ export function HrGuard({ children }: { children: React.ReactNode }) {
   }, [accessToken, user, hrAccess, router]);
 
   if (!accessToken || !user || !hrAccess) {
-    return <p className="text-sm text-muted-foreground">Checking access…</p>;
+    return <p className="py-8 text-center text-sm text-muted-foreground">Checking access…</p>;
   }
 
   return <>{children}</>;

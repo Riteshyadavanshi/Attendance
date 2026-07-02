@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 
 import { HrGuard } from '@/components/layout/HrGuard';
+import { PageHeader } from '@/components/layout/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -53,18 +54,18 @@ export default function HRFeedbackListPage() {
 
   return (
     <HrGuard>
-      <div className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">Feedback forms</h1>
-            <p className="text-sm text-muted-foreground">Create, edit, and analyze employee feedback.</p>
-          </div>
-          <Link href="/hr/feedback/new">
-            <Button>
-              <Plus className="h-4 w-4" /> Create form
-            </Button>
-          </Link>
-        </div>
+      <>
+        <PageHeader
+          title="Feedback forms"
+          description="Create, edit, and analyze employee feedback."
+          actions={
+            <Link href="/hr/feedback/new">
+              <Button>
+                <Plus className="h-4 w-4" /> Create form
+              </Button>
+            </Link>
+          }
+        />
 
         {loading ? (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -148,7 +149,7 @@ export default function HRFeedbackListPage() {
             })}
           </div>
         )}
-      </div>
+      </>
 
       <ConfirmDialog
         open={Boolean(toDelete)}

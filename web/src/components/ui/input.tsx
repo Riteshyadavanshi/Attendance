@@ -32,11 +32,28 @@ export function Label({
   ...props
 }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return (
-    <label
-      className={cn('mb-1.5 block text-sm font-medium text-foreground', className)}
-      {...props}
-    >
+    <label className={cn('block text-sm font-medium text-foreground', className)} {...props}>
       {children}
     </label>
+  );
+}
+
+export function FormField({
+  label,
+  children,
+  hint,
+  className,
+}: {
+  label?: React.ReactNode;
+  children: React.ReactNode;
+  hint?: string;
+  className?: string;
+}) {
+  return (
+    <div className={cn('flex flex-col gap-1.5', className)}>
+      {label && <Label>{label}</Label>}
+      {children}
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </div>
   );
 }

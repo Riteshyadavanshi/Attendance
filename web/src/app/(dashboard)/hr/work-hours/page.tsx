@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 
 import { HrGuard } from '@/components/layout/HrGuard';
+import { PageHeader } from '@/components/layout/page';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input, Label } from '@/components/ui/input';
+import { FormField, Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
 import { attendanceRulesApi, type AttendanceRules } from '@/lib/api';
 
@@ -57,34 +58,32 @@ export default function WorkHoursPage() {
 
   return (
     <HrGuard>
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Work hours</h1>
+      <>
+        <PageHeader title="Work hours" description="Configure attendance rules and late thresholds." />
         <Card>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (
-            <form onSubmit={onSave} className="space-y-4">
-              <div>
-                <Label>Work start (HH:MM)</Label>
+            <form onSubmit={onSave} className="flex flex-col gap-4">
+              <FormField label="Work start (HH:MM)">
                 <Input value={workStart} onChange={(e) => setWorkStart(e.target.value)} />
-              </div>
-              <div>
-                <Label>Work end (HH:MM)</Label>
+              </FormField>
+              <FormField label="Work end (HH:MM)">
                 <Input value={workEnd} onChange={(e) => setWorkEnd(e.target.value)} />
-              </div>
-              <div>
-                <Label>Late grace (minutes)</Label>
+              </FormField>
+              <FormField label="Late grace (minutes)">
                 <Input value={lateGrace} onChange={(e) => setLateGrace(e.target.value)} />
-              </div>
-              <div>
-                <Label>Standard hours</Label>
+              </FormField>
+              <FormField label="Standard hours">
                 <Input value={standardHours} onChange={(e) => setStandardHours(e.target.value)} />
-              </div>
-              <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save rules'}</Button>
+              </FormField>
+              <Button type="submit" disabled={saving} className="self-start">
+                {saving ? 'Saving…' : 'Save rules'}
+              </Button>
             </form>
           )}
         </Card>
-      </div>
+      </>
     </HrGuard>
   );
 }

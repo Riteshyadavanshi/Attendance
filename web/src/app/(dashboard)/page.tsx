@@ -4,6 +4,7 @@ import { Camera, CheckCircle2, Clock, LogIn, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
+import { PageHeader } from '@/components/layout/page';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,11 +35,8 @@ export default function HomePage() {
   const checkedOut = today?.check_out_at;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Home</h1>
-        <p className="text-sm text-muted-foreground">Today&apos;s attendance overview</p>
-      </div>
+    <>
+      <PageHeader title="Home" description="Today's attendance overview" />
 
       {faceEnrolled === false && (
         <Card accent>
@@ -99,6 +97,6 @@ export default function HomePage() {
           </Button>
         </Link>
       </div>
-    </div>
+    </>
   );
 }

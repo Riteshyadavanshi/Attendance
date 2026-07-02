@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { HrGuard } from '@/components/layout/HrGuard';
+import { PageHeader } from '@/components/layout/page';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -26,10 +27,8 @@ export default function EmployeeListPage() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  // Guards against duplicate fetches while a request is in flight.
   const fetchingRef = useRef(false);
 
-  // Debounce the search box.
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search.trim()), 350);
     return () => clearTimeout(t);
@@ -59,12 +58,10 @@ export default function EmployeeListPage() {
     [toast],
   );
 
-  // Initial load + reload whenever the debounced search changes.
   useEffect(() => {
     fetchPage(1, debounced, false);
   }, [debounced, fetchPage]);
 
-  // Infinite scroll: load the next page when the sentinel scrolls into view.
   useEffect(() => {
     const node = sentinelRef.current;
     if (!node || !hasMore || loading) return;
@@ -82,14 +79,16 @@ export default function EmployeeListPage() {
 
   return (
     <HrGuard>
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">All employees</h1>
-            <p className="text-sm text-muted-foreground">{total} total</p>
-          </div>
-          <Link href="/hr/employees/register"><Button>Register</Button></Link>
-        </div>
+      <>
+        <PageHeader
+          title="All employees"
+          description={`${total} total`}
+          actions={
+            <Link href="/hr/employees/register">
+              <Button>Register</Button>
+            </Link>
+          }
+        />
 
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -102,8 +101,10 @@ export default function EmployeeListPage() {
         </div>
 
         {loading ? (
-          <div className="space-y-2">
-            {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-16 w-full" />)}
+          <div className="flex flex-col gap-2">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
           </div>
         ) : employees.length === 0 ? (
           <Card className="flex flex-col items-center gap-3 py-12 text-center">
@@ -116,14 +117,14 @@ export default function EmployeeListPage() {
             {debounced && <p className="text-sm text-muted-foreground">Try a different search term.</p>}
           </Card>
         ) : (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             {employees.map((e) => (
               <Card key={e.id}>
                 <div className="flex flex-wrap items-center gap-4">
                   <span className="font-mono text-sm font-bold text-primary">{e.employee_code}</span>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-foreground">{e.full_name}</p>
-                    <p className="text-sm text-muted-foreground">{e.email ?? '—'}</p>
+                    <p className="truncate text-sm text-muted-foreground">{e.email ?? '—'}</p>
                   </div>
                   <p className="text-sm text-muted-foreground">{e.designation ?? '—'}</p>
                 </div>
@@ -144,7 +145,7 @@ export default function EmployeeListPage() {
             )}
           </div>
         )}
-      </div>
+      </>
     </HrGuard>
   );
 }

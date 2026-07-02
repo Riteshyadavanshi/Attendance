@@ -168,10 +168,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {initials}
           </span>
         </header>
-        <main className="mx-auto max-w-5xl px-4 py-6 lg:px-8">{children}</main>
+        <main className="mx-auto w-full max-w-5xl px-4 py-6 pb-24 lg:px-8 lg:pb-8">{children}</main>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-card lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 flex border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
         {EMPLOYEE_NAV.slice(0, 4).map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -202,7 +202,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         )}
       </nav>
-      <div className="h-16 lg:hidden" />
+      <div className="h-[calc(4rem+env(safe-area-inset-bottom))] lg:hidden" />
     </div>
   );
 }

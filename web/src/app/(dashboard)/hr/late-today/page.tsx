@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 
 import { LateRankList } from '@/components/hr/LateLeaderboardList';
 import { HrGuard } from '@/components/layout/HrGuard';
+import { PageHeader } from '@/components/layout/page';
 import { attendanceApi, type LateTodayEntry } from '@/lib/api';
 
 export default function LateTodayPage() {
@@ -24,11 +25,14 @@ export default function LateTodayPage() {
 
   return (
     <HrGuard>
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Late today</h1>
-        {date && <p className="text-sm text-muted-foreground">{date}</p>}
-        {loading ? <p className="text-sm text-muted-foreground">Loading…</p> : <LateRankList mode="today" items={items} />}
-      </div>
+      <>
+        <PageHeader title="Late today" description={date || undefined} />
+        {loading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : (
+          <LateRankList mode="today" items={items} />
+        )}
+      </>
     </HrGuard>
   );
 }

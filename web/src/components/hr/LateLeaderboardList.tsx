@@ -39,7 +39,7 @@ export function LateRankList({ mode, items, compact }: Props) {
 
   if (mode === 'today') {
     return (
-      <div className="space-y-2">
+      <div className="flex flex-col gap-2">
         {items.map((entry) => {
           const palette = RANK_COLORS[entry.rank];
           return (
@@ -69,7 +69,7 @@ export function LateRankList({ mode, items, compact }: Props) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       {items.map((entry) => {
         const palette = RANK_COLORS[entry.rank];
         return (

@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input, Label, Select, Textarea } from '@/components/ui/input';
+import { FormField, Input, Select, Textarea } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import type { FeedbackQuestion } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -107,7 +107,7 @@ function QuestionEditor({
     onChange({ options: (question.options ?? []).filter((_, idx) => idx !== i) });
 
   return (
-    <Card className="border-l-4 border-l-primary/70">
+    <Card className="flex flex-col gap-4 border-l-4 border-l-primary/70">
       <div className="flex items-center gap-2">
         <GripVertical className="h-4 w-4 text-muted-foreground" />
         <Badge tone="primary">
@@ -149,17 +149,15 @@ function QuestionEditor({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_200px]">
-        <div>
-          <Label>Question</Label>
+      <div className="grid gap-4 sm:grid-cols-[1fr_200px]">
+        <FormField label="Question">
           <Input
             value={question.label}
             placeholder="e.g. How satisfied were you?"
             onChange={(e) => onChange({ label: e.target.value })}
           />
-        </div>
-        <div>
-          <Label>Type</Label>
+        </FormField>
+        <FormField label="Type">
           <Select value={question.type} onChange={(e) => setType(e.target.value as QType)}>
             {(Object.keys(TYPE_META) as QType[]).map((t) => (
               <option key={t} value={t}>
@@ -167,42 +165,43 @@ function QuestionEditor({
               </option>
             ))}
           </Select>
-        </div>
+        </FormField>
       </div>
 
       {question.type === 'choice' && (
-        <div className="mt-4 space-y-2">
-          <Label>Options</Label>
-          {(question.options ?? []).map((opt, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <CircleDot className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <Input value={opt} onChange={(e) => updateOption(i, e.target.value)} />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => removeOption(i)}
-                disabled={(question.options?.length ?? 0) <= 2}
-                aria-label="Remove option"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-          <Button type="button" variant="ghost" size="sm" onClick={addOption} className="text-primary">
-            <Plus className="h-4 w-4" /> Add option
-          </Button>
-        </div>
+        <FormField label="Options">
+          <div className="flex flex-col gap-2">
+            {(question.options ?? []).map((opt, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <CircleDot className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <Input value={opt} onChange={(e) => updateOption(i, e.target.value)} />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeOption(i)}
+                  disabled={(question.options?.length ?? 0) <= 2}
+                  aria-label="Remove option"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button type="button" variant="ghost" size="sm" onClick={addOption} className="self-start text-primary">
+              <Plus className="h-4 w-4" /> Add option
+            </Button>
+          </div>
+        </FormField>
       )}
 
-      <div className="mt-4 flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+      <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
         <div className="text-xs text-muted-foreground">Preview</div>
         <label className="flex items-center gap-2 text-sm font-medium text-foreground">
           Required
           <Switch checked={question.required} onCheckedChange={(v) => onChange({ required: v })} />
         </label>
       </div>
-      <div className="mt-3 rounded-lg border border-border p-3">
+      <div className="rounded-lg border border-border p-3">
         <p className="mb-2 text-sm font-medium text-foreground">
           {question.label || 'Untitled question'}
           {question.required && <span className="ml-1 text-destructive">*</span>}
@@ -270,26 +269,26 @@ export function FeedbackFormBuilder({
   };
 
   return (
-    <div className="space-y-5">
-      <Card className="border-t-4 border-t-primary">
-        <Label>Form title</Label>
-        <Input
-          value={title}
-          placeholder="Untitled feedback form"
-          onChange={(e) => setTitle(e.target.value)}
-          className="text-base font-semibold"
-        />
-        <div className="mt-4">
-          <Label>Description (optional)</Label>
+    <div className="flex flex-col gap-5">
+      <Card className="flex flex-col gap-4 border-t-4 border-t-primary">
+        <FormField label="Form title">
+          <Input
+            value={title}
+            placeholder="Untitled feedback form"
+            onChange={(e) => setTitle(e.target.value)}
+            className="text-base font-semibold"
+          />
+        </FormField>
+        <FormField label="Description (optional)">
           <Textarea
             value={description}
             placeholder="What is this form about?"
             onChange={(e) => setDescription(e.target.value)}
           />
-        </div>
+        </FormField>
       </Card>
 
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3">
         {questions.map((q, i) => (
           <QuestionEditor
             key={q.id}

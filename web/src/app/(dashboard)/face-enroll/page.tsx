@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { IdentityForm, type IdentityFormHandle } from '@/components/face/IdentityForm';
+import { PageHeader } from '@/components/layout/page';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/components/ui/toast';
@@ -44,7 +45,6 @@ export default function FaceEnrollPage() {
 
   const onCapture = () => {
     if (preview) {
-      // Retake: drop this angle's photo so the live camera returns.
       setImages((prev) => ({ ...prev, [current.key]: undefined }));
       return;
     }
@@ -85,8 +85,11 @@ export default function FaceEnrollPage() {
   const poseReady = !preview && !hint;
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Face enrollment</h1>
+    <>
+      <PageHeader
+        title="Face enrollment"
+        description="Confirm your details, then capture five angles for verification."
+      />
 
       <Card>
         <IdentityForm
@@ -95,12 +98,15 @@ export default function FaceEnrollPage() {
         />
       </Card>
 
-      <Card>
-        <p className="font-semibold text-primary">
-          Step {step + 1}/{ANGLES.length}: {current.label}
-        </p>
-        <p className="text-sm text-muted-foreground">{current.hint}</p>
-        <div className="mt-4 overflow-hidden rounded-xl border border-border bg-slate-950">
+      <Card className="flex flex-col gap-4">
+        <div>
+          <p className="font-semibold text-primary">
+            Step {step + 1}/{ANGLES.length}: {current.label}
+          </p>
+          <p className="text-sm text-muted-foreground">{current.hint}</p>
+        </div>
+
+        <div className="overflow-hidden rounded-xl border border-border bg-slate-950">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -113,19 +119,21 @@ export default function FaceEnrollPage() {
           )}
         </div>
 
-        {error && <p className="mt-2 text-sm text-warning">{error}</p>}
-        {!error && !preview && (
-          <p className={`mt-2 text-sm font-medium ${hint ? 'text-warning' : 'text-success'}`}>
-            {hint ?? 'Great — hold still and capture.'}
-          </p>
-        )}
-        {detectorError && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            Face check unavailable — capturing without pose validation.
-          </p>
-        )}
+        <div className="flex flex-col gap-1.5">
+          {error && <p className="text-sm text-warning">{error}</p>}
+          {!error && !preview && (
+            <p className={`text-sm font-medium ${hint ? 'text-warning' : 'text-success'}`}>
+              {hint ?? 'Great — hold still and capture.'}
+            </p>
+          )}
+          {detectorError && (
+            <p className="text-xs text-muted-foreground">
+              Face check unavailable — capturing without pose validation.
+            </p>
+          )}
+        </div>
 
-        <div className="mt-3 flex justify-center gap-2">
+        <div className="flex justify-center gap-2">
           {ANGLES.map((a, i) => (
             <span
               key={a.key}
@@ -133,7 +141,8 @@ export default function FaceEnrollPage() {
             />
           ))}
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+
+        <div className="flex flex-wrap gap-2">
           <Button onClick={onCapture} disabled={!ready || submitting || (!preview && !poseReady)}>
             {preview ? `Retake ${current.label}` : `Capture ${current.label}`}
           </Button>
@@ -144,6 +153,6 @@ export default function FaceEnrollPage() {
           )}
         </div>
       </Card>
-    </div>
+    </>
   );
 }

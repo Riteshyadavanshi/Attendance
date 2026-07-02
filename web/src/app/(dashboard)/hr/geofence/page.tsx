@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 
 import { HrGuard } from '@/components/layout/HrGuard';
+import { PageHeader } from '@/components/layout/page';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input, Label } from '@/components/ui/input';
+import { FormField, Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/toast';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -64,41 +65,35 @@ export default function GeofencePage() {
 
   return (
     <HrGuard>
-      <div className="space-y-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Office geofence</h1>
-          <p className="text-sm text-muted-foreground">
-            One office boundary for check-in and check-out. Employees must be inside this radius.
-          </p>
-        </div>
+      <>
+        <PageHeader
+          title="Office geofence"
+          description="One office boundary for check-in and check-out. Employees must be inside this radius."
+        />
         <Card>
           {loading ? (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-            <form onSubmit={onSave} className="space-y-3">
-              <div>
-                <Label>Name</Label>
+            <form onSubmit={onSave} className="flex flex-col gap-4">
+              <FormField label="Name">
                 <Input value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div>
-                <Label>Latitude</Label>
+              </FormField>
+              <FormField label="Latitude">
                 <Input value={latitude} onChange={(e) => setLatitude(e.target.value)} />
-              </div>
-              <div>
-                <Label>Longitude</Label>
+              </FormField>
+              <FormField label="Longitude">
                 <Input value={longitude} onChange={(e) => setLongitude(e.target.value)} />
-              </div>
-              <div>
-                <Label>Radius (meters)</Label>
+              </FormField>
+              <FormField label="Radius (meters)">
                 <Input value={radius} onChange={(e) => setRadius(e.target.value)} />
-              </div>
+              </FormField>
               <button
                 type="button"
-                className="text-sm font-semibold text-primary"
+                className="self-start text-sm font-semibold text-primary"
                 onClick={async () => {
                   try {
                     const pos = await getCurrentLocation();
@@ -111,13 +106,13 @@ export default function GeofencePage() {
               >
                 Use current GPS
               </button>
-              <Button type="submit" disabled={saving}>
+              <Button type="submit" disabled={saving} className="self-start">
                 {saving ? 'Saving…' : 'Save geofence'}
               </Button>
             </form>
           )}
         </Card>
-      </div>
+      </>
     </HrGuard>
   );
 }

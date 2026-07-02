@@ -4,11 +4,21 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { HrGuard } from '@/components/layout/HrGuard';
+import { PageHeader } from '@/components/layout/page';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input, Label, Select } from '@/components/ui/input';
+import { FormField, Input, Select } from '@/components/ui/input';
 import { useToast } from '@/components/ui/toast';
 import { employeesApi } from '@/lib/api';
+
+const FIELD_LABELS: Record<string, string> = {
+  full_name: 'Full name',
+  email: 'Email',
+  password: 'Password',
+  employee_code: 'Employee code',
+  designation: 'Designation',
+  mobile: 'Mobile',
+};
 
 export default function RegisterEmployeePage() {
   const router = useRouter();
@@ -48,23 +58,24 @@ export default function RegisterEmployeePage() {
 
   return (
     <HrGuard>
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Register employee</h1>
+      <>
+        <PageHeader title="Register employee" description="Create a new employee account." />
         <Card>
-          <form onSubmit={onSubmit} className="space-y-4">
-            {(['full_name', 'email', 'password', 'employee_code', 'designation', 'mobile'] as const).map((field) => (
-              <div key={field}>
-                <Label>{field.replace('_', ' ')}</Label>
-                <Input
-                  value={form[field]}
-                  onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-                  required={['full_name', 'email', 'password', 'employee_code'].includes(field)}
-                />
-              </div>
-            ))}
+          <form onSubmit={onSubmit} className="flex flex-col gap-4">
+            {(['full_name', 'email', 'password', 'employee_code', 'designation', 'mobile'] as const).map(
+              (field) => (
+                <FormField key={field} label={FIELD_LABELS[field] ?? field}>
+                  <Input
+                    value={form[field]}
+                    onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
+                    required={['full_name', 'email', 'password', 'employee_code'].includes(field)}
+                    type={field === 'password' ? 'password' : field === 'email' ? 'email' : 'text'}
+                  />
+                </FormField>
+              ),
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label>Gender</Label>
+              <FormField label="Gender">
                 <Select
                   value={form.gender}
                   onChange={(e) => setForm((f) => ({ ...f, gender: e.target.value }))}
@@ -75,26 +86,23 @@ export default function RegisterEmployeePage() {
                   <option value="other">Other</option>
                   <option value="prefer_not_to_say">Prefer not to say</option>
                 </Select>
-              </div>
-              <div>
-                <Label>Date of birth</Label>
+              </FormField>
+              <FormField label="Date of birth">
                 <Input
                   type="date"
                   value={form.date_of_birth}
                   onChange={(e) => setForm((f) => ({ ...f, date_of_birth: e.target.value }))}
                 />
-              </div>
+              </FormField>
             </div>
-            <div>
-              <Label>Location</Label>
+            <FormField label="Location">
               <Input
                 value={form.location}
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
                 placeholder="City / office"
               />
-            </div>
-            <div>
-              <Label>Role</Label>
+            </FormField>
+            <FormField label="Role">
               <Select
                 value={form.roles[0]}
                 onChange={(e) => setForm((f) => ({ ...f, roles: [e.target.value] }))}
@@ -102,11 +110,13 @@ export default function RegisterEmployeePage() {
                 <option value="employee">Employee</option>
                 <option value="hr">HR</option>
               </Select>
-            </div>
-            <Button type="submit" disabled={loading}>{loading ? 'Saving…' : 'Create employee'}</Button>
+            </FormField>
+            <Button type="submit" disabled={loading} className="self-start">
+              {loading ? 'Saving…' : 'Create employee'}
+            </Button>
           </form>
         </Card>
-      </div>
+      </>
     </HrGuard>
   );
 }

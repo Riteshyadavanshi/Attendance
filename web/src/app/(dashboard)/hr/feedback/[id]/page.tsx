@@ -1,11 +1,12 @@
 'use client';
 
-import { ArrowLeft, FileEdit, Lock, Trash2 } from 'lucide-react';
+import { FileEdit, Lock, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 
 import { HrGuard } from '@/components/layout/HrGuard';
+import { BackLink, PageHeader, PageSection } from '@/components/layout/page';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -149,16 +150,11 @@ export default function FeedbackDetailPage() {
 
   return (
     <HrGuard>
-      <div className="space-y-5">
-        <Link
-          href="/hr/feedback"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Feedback forms
-        </Link>
+      <>
+        <BackLink href="/hr/feedback">Feedback forms</BackLink>
 
         {loading ? (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             <Skeleton className="h-10 w-64" />
             <div className="grid gap-3 sm:grid-cols-2">
               {[0, 1, 2, 3].map((i) => (
@@ -170,52 +166,54 @@ export default function FeedbackDetailPage() {
           <Card><p className="text-sm text-destructive">Form not found.</p></Card>
         ) : (
           <>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold tracking-tight text-foreground">{dashboard.title}</h1>
+            <PageHeader
+              title={dashboard.title}
+              description={
+                <span className="flex flex-wrap items-center gap-2">
+                  <span>{dashboard.total_responses} total responses</span>
                   {form && (
                     <Badge tone={form.is_active ? 'success' : 'muted'}>
                       {form.is_active ? 'Active' : 'Closed'}
                     </Badge>
                   )}
-                </div>
-                <p className="text-sm text-muted-foreground">{dashboard.total_responses} total responses</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {form && (
-                  <label className="mr-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    Open
-                    <Switch checked={form.is_active} onCheckedChange={toggleActive} />
-                  </label>
-                )}
-                {locked ? (
-                  <Button variant="ghost" size="sm" disabled title="Cannot edit a form that has responses">
-                    <Lock className="h-4 w-4" /> Edit
-                  </Button>
-                ) : (
-                  <Link href={`/hr/feedback/${id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      <FileEdit className="h-4 w-4" /> Edit
+                </span>
+              }
+              actions={
+                <div className="flex flex-wrap items-center gap-2">
+                  {form && (
+                    <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                      Open
+                      <Switch checked={form.is_active} onCheckedChange={toggleActive} />
+                    </label>
+                  )}
+                  {locked ? (
+                    <Button variant="ghost" size="sm" disabled title="Cannot edit a form that has responses">
+                      <Lock className="h-4 w-4" /> Edit
                     </Button>
-                  </Link>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-destructive hover:bg-destructive/10"
-                  onClick={() => setConfirmOpen(true)}
-                  aria-label="Delete form"
-                  disabled={togglingActive}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+                  ) : (
+                    <Link href={`/hr/feedback/${id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <FileEdit className="h-4 w-4" /> Edit
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-destructive hover:bg-destructive/10"
+                    onClick={() => setConfirmOpen(true)}
+                    aria-label="Delete form"
+                    disabled={togglingActive}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              }
+            />
 
             <div className="grid gap-3 sm:grid-cols-2">
               {dashboard.questions.map((q) => (
-                <Card key={q.id} className="space-y-3">
+                <Card key={q.id} className="flex flex-col gap-3">
                   <div className="flex items-center justify-between gap-2">
                     <p className="font-semibold text-foreground">{q.label}</p>
                     <Badge tone="muted">{q.type}</Badge>
@@ -227,12 +225,13 @@ export default function FeedbackDetailPage() {
               ))}
             </div>
 
-            <div>
-              <h2 className="mb-2 text-lg font-bold text-foreground">Recent responses</h2>
+            <PageSection title="Recent responses">
               {responses.length === 0 ? (
-                <Card><p className="text-sm text-muted-foreground">No responses yet.</p></Card>
+                <Card>
+                  <p className="text-sm text-muted-foreground">No responses yet.</p>
+                </Card>
               ) : (
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   {responses.map((r) => (
                     <Card key={r.id}>
                       <div className="flex items-center justify-between">
@@ -253,10 +252,10 @@ export default function FeedbackDetailPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </PageSection>
           </>
         )}
-      </div>
+      </>
 
       <ConfirmDialog
         open={confirmOpen}

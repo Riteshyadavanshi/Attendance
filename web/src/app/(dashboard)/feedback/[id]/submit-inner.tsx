@@ -1,13 +1,14 @@
 'use client';
 
-import { ArrowLeft, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+import { BackLink, Narrow, PageHeader } from '@/components/layout/page';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input, Label, Select, Textarea } from '@/components/ui/input';
+import { FormField, Select, Textarea } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/toast';
 import { feedbackFormsApi, type FeedbackFormRecord } from '@/lib/api';
@@ -73,78 +74,90 @@ export default function SubmitFeedbackInner() {
 
   if (loading) {
     return (
-      <div className="space-y-3">
+      <Narrow>
         <Skeleton className="h-10 w-48" />
         <Skeleton className="h-64 w-full" />
-      </div>
+      </Narrow>
     );
   }
 
-  if (!form) return <Card><p className="text-sm text-destructive">Form not found.</p></Card>;
-
-  if (done || form.already_submitted) {
+  if (!form) {
     return (
-      <Card className="flex flex-col items-center gap-3 py-12 text-center">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15 text-success">
-          <Star className="h-6 w-6" />
-        </span>
-        <p className="font-semibold text-foreground">Thanks for your feedback!</p>
-        <Link href="/feedback"><Button variant="outline">Back to forms</Button></Link>
+      <Card>
+        <p className="text-sm text-destructive">Form not found.</p>
       </Card>
     );
   }
 
-  return (
-    <div className="mx-auto max-w-xl space-y-5">
-      <div>
-        <Link
-          href="/feedback"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Feedback
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground">{title ?? form.title}</h1>
-        {form.description && <p className="text-sm text-muted-foreground">{form.description}</p>}
-      </div>
+  if (done || form.already_submitted) {
+    return (
+      <Narrow>
+        <Card className="flex flex-col items-center gap-3 py-12 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-success/15 text-success">
+            <Star className="h-6 w-6" />
+          </span>
+          <p className="font-semibold text-foreground">Thanks for your feedback!</p>
+          <Link href="/feedback">
+            <Button variant="outline">Back to forms</Button>
+          </Link>
+        </Card>
+      </Narrow>
+    );
+  }
 
-      <form onSubmit={onSubmit} className="space-y-4">
+  return (
+    <Narrow>
+      <BackLink href="/feedback">Feedback</BackLink>
+      <PageHeader
+        title={title ?? form.title}
+        description={form.description ?? undefined}
+      />
+
+      <form onSubmit={onSubmit} className="flex flex-col gap-4">
         {form.questions.map((q) => (
           <Card key={q.id} className="border-l-4 border-l-primary/60">
-            <Label>
-              {q.label}
-              {q.required ? <span className="ml-1 text-destructive">*</span> : null}
-            </Label>
-            {q.type === 'text' && (
-              <Textarea
-                value={String(answers[q.id] ?? '')}
-                onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
-                required={q.required}
-              />
-            )}
-            {q.type === 'rating' && (
-              <RatingInput
-                value={Number(answers[q.id] ?? 0)}
-                onChange={(v) => setAnswers((a) => ({ ...a, [q.id]: v }))}
-              />
-            )}
-            {q.type === 'choice' && q.options && (
-              <Select
-                value={String(answers[q.id] ?? '')}
-                onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
-                required={q.required}
-              >
-                <option value="">Select…</option>
-                {q.options.map((o) => (
-                  <option key={o} value={o}>{o}</option>
-                ))}
-              </Select>
-            )}
+            <FormField
+              label={
+                <>
+                  {q.label}
+                  {q.required ? <span className="ml-1 text-destructive">*</span> : null}
+                </>
+              }
+            >
+              {q.type === 'text' && (
+                <Textarea
+                  value={String(answers[q.id] ?? '')}
+                  onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                  required={q.required}
+                />
+              )}
+              {q.type === 'rating' && (
+                <RatingInput
+                  value={Number(answers[q.id] ?? 0)}
+                  onChange={(v) => setAnswers((a) => ({ ...a, [q.id]: v }))}
+                />
+              )}
+              {q.type === 'choice' && q.options && (
+                <Select
+                  value={String(answers[q.id] ?? '')}
+                  onChange={(e) => setAnswers((a) => ({ ...a, [q.id]: e.target.value }))}
+                  required={q.required}
+                >
+                  <option value="">Select…</option>
+                  {q.options.map((o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </FormField>
           </Card>
         ))}
         <Button type="submit" disabled={submitting} className="w-full">
           {submitting ? 'Submitting…' : 'Submit feedback'}
         </Button>
       </form>
-    </div>
+    </Narrow>
   );
 }

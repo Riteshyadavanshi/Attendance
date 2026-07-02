@@ -3,7 +3,7 @@
 import { Lock } from 'lucide-react';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 
-import { Input, Label, Select } from '@/components/ui/input';
+import { FormField, Input, Select } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { employeesApi, type EmployeeProfile } from '@/lib/api';
 
@@ -92,36 +92,35 @@ export const IdentityForm = forwardRef<IdentityFormHandle, Props>(function Ident
   const age = ageFromDob(dob);
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-4">
       <div>
         <p className="font-semibold text-foreground">{title}</p>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <Label>Employee name</Label>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FormField label="Employee name">
           <Input value={profile.full_name} readOnly className="bg-muted/40" />
-        </div>
-        <div>
-          <Label className="flex items-center gap-1">
-            Employee ID <Lock className="h-3 w-3 text-muted-foreground" />
-          </Label>
+        </FormField>
+        <FormField
+          label={
+            <span className="flex items-center gap-1">
+              Employee ID <Lock className="h-3 w-3 text-muted-foreground" />
+            </span>
+          }
+        >
           <Input value={profile.employee_code} readOnly disabled className="bg-muted/40" />
-        </div>
-        <div>
-          <Label>Department</Label>
+        </FormField>
+        <FormField label="Department">
           <Input value={profile.department_name ?? '—'} readOnly className="bg-muted/40" />
-        </div>
-        <div>
-          <Label>Location</Label>
+        </FormField>
+        <FormField label="Location">
           <Input
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="City / office"
           />
-        </div>
-        <div>
-          <Label>Gender</Label>
+        </FormField>
+        <FormField label="Gender">
           <Select value={gender} onChange={(e) => setGender(e.target.value)}>
             <option value="">Select…</option>
             <option value="male">Male</option>
@@ -129,11 +128,10 @@ export const IdentityForm = forwardRef<IdentityFormHandle, Props>(function Ident
             <option value="other">Other</option>
             <option value="prefer_not_to_say">Prefer not to say</option>
           </Select>
-        </div>
-        <div>
-          <Label>Date of birth{age !== null ? ` · Age ${age}` : ''}</Label>
+        </FormField>
+        <FormField label={age !== null ? `Date of birth · Age ${age}` : 'Date of birth'}>
           <Input type="date" value={dob} onChange={(e) => setDob(e.target.value)} />
-        </div>
+        </FormField>
       </div>
     </div>
   );

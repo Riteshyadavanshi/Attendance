@@ -150,82 +150,77 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
         </div>
       </Modal>
 
-      <Card>
-      <p className="text-sm text-muted-foreground">
-        {mode === 'in' ? 'Check in with face verification and office geofence.' : 'Check out with face verification.'}
-      </p>
+      <Card className="flex flex-col gap-4">
+        <div className="overflow-hidden rounded-xl border border-border bg-slate-950">
+          {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={`data:image/jpeg;base64,${preview}`}
+              alt="Captured face"
+              className="h-64 w-full object-cover transform-[scaleX(-1)]"
+            />
+          ) : (
+            <video ref={videoRef} className="h-64 w-full object-cover transform-[scaleX(-1)]" playsInline muted />
+          )}
+        </div>
 
-      <div className="mt-4 overflow-hidden rounded-xl border border-border bg-slate-950">
-        {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`data:image/jpeg;base64,${preview}`}
-            alt="Captured face"
-            className="h-64 w-full object-cover transform-[scaleX(-1)]"
-          />
-        ) : (
-          <video ref={videoRef} className="h-64 w-full object-cover transform-[scaleX(-1)]" playsInline muted />
-        )}
-      </div>
-      {!ready && !camError && <p className="mt-2 text-sm text-muted-foreground">Starting camera…</p>}
-      {camError && (
-        <p className="mt-2 text-sm font-medium text-warning">
-          {camError}
-        </p>
-      )}
-      {ready && !camError && !preview && (
-        <p className={`mt-2 text-sm font-medium ${hint ? 'text-warning' : 'text-success'}`}>
-          {hint ?? 'Face detected — ready to capture.'}
-        </p>
-      )}
-      {detectorError && (
-        <p className="mt-1 text-xs text-muted-foreground">
-          Face check unavailable — capturing without validation.
-        </p>
-      )}
-      {geofence && (
-        <p className="mt-2 text-xs text-muted-foreground">Office: {geofence.name}</p>
-      )}
-      {insideGeofence === false && geofence && (
-        <p className="mt-1 text-xs font-medium text-warning">
-          You are outside the office area. Move closer to {geofence.name} to {mode === 'in' ? 'check in' : 'check out'}.
-        </p>
-      )}
-      {insideGeofence === true && (
-        <p className="mt-1 text-xs font-medium text-success">You are at the office location.</p>
-      )}
-      {!geofence && coords && (
-        <p className="mt-1 text-xs text-muted-foreground">Verifying your location…</p>
-      )}
-      {coords?.accuracy != null && coords.accuracy > 50 && insideGeofence !== true && (
-        <p className="mt-1 text-xs text-warning">Location signal is weak. Try near a window, then refresh.</p>
-      )}
-      {locError && <p className="mt-1 text-xs text-warning">{locError}</p>}
-      <div className="mt-4 flex flex-wrap gap-2">
-        {camError && (
-          <Button variant="outline" onClick={() => start()}>
-            Retry camera
+        <div className="flex flex-col gap-1.5">
+          {!ready && !camError && <p className="text-sm text-muted-foreground">Starting camera…</p>}
+          {camError && <p className="text-sm font-medium text-warning">{camError}</p>}
+          {ready && !camError && !preview && (
+            <p className={`text-sm font-medium ${hint ? 'text-warning' : 'text-success'}`}>
+              {hint ?? 'Face detected — ready to capture.'}
+            </p>
+          )}
+          {detectorError && (
+            <p className="text-xs text-muted-foreground">
+              Face check unavailable — capturing without validation.
+            </p>
+          )}
+          {geofence && <p className="text-xs text-muted-foreground">Office: {geofence.name}</p>}
+          {insideGeofence === false && geofence && (
+            <p className="text-xs font-medium text-warning">
+              You are outside the office area. Move closer to {geofence.name} to{' '}
+              {mode === 'in' ? 'check in' : 'check out'}.
+            </p>
+          )}
+          {insideGeofence === true && (
+            <p className="text-xs font-medium text-success">You are at the office location.</p>
+          )}
+          {!geofence && coords && (
+            <p className="text-xs text-muted-foreground">Verifying your location…</p>
+          )}
+          {coords?.accuracy != null && coords.accuracy > 50 && insideGeofence !== true && (
+            <p className="text-xs text-warning">Location signal is weak. Try near a window, then refresh.</p>
+          )}
+          {locError && <p className="text-xs text-warning">{locError}</p>}
+        </div>
+
+        <div className="flex flex-wrap gap-2 pt-1">
+          {camError && (
+            <Button variant="outline" onClick={() => start()}>
+              Retry camera
+            </Button>
+          )}
+          <Button variant="outline" onClick={() => getCurrentLocation()} disabled={locLoading}>
+            Refresh GPS
           </Button>
-        )}
-        <Button variant="outline" onClick={() => getCurrentLocation()} disabled={locLoading}>
-          Refresh GPS
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={onCapture}
-          disabled={!ready || (!preview && !!hint)}
-        >
-          {preview ? 'Retake face' : 'Capture face'}
-        </Button>
-        <Button
-          variant={mode === 'out' ? 'danger' : 'primary'}
-          onClick={onSubmit}
-          disabled={!canSubmit || (insideGeofence === null && !!geofence)}
-        >
-          {submitting ? 'Submitting…' : mode === 'in' ? 'Confirm check in' : 'Confirm check out'}
-        </Button>
-      </div>
-    </Card>
+          <Button
+            variant="secondary"
+            onClick={onCapture}
+            disabled={!ready || (!preview && !!hint)}
+          >
+            {preview ? 'Retake face' : 'Capture face'}
+          </Button>
+          <Button
+            variant={mode === 'out' ? 'danger' : 'primary'}
+            onClick={onSubmit}
+            disabled={!canSubmit || (insideGeofence === null && !!geofence)}
+          >
+            {submitting ? 'Submitting…' : mode === 'in' ? 'Confirm check in' : 'Confirm check out'}
+          </Button>
+        </div>
+      </Card>
     </>
   );
 }
