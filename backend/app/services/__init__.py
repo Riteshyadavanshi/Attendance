@@ -95,6 +95,23 @@ class GeofenceService:
         a = sin(dphi / 2) ** 2 + cos(phi1) * cos(phi2) * sin(dlambda / 2) ** 2
         return r * 2 * atan2(sqrt(a), sqrt(1 - a))
 
+    async def nearest_distance_m(
+        self, db: AsyncSession, org_id: UUID, latitude: float, longitude: float
+    ) -> float | None:
+        result = await db.execute(
+            select(OfficeLocation).where(
+                OfficeLocation.organization_id == org_id,
+                OfficeLocation.is_active.is_(True),
+            )
+        )
+        locations = result.scalars().all()
+        if not locations:
+            return None
+        return min(
+            self.haversine_distance_m(latitude, longitude, float(loc.latitude), float(loc.longitude))
+            for loc in locations
+        )
+
     async def validate(
         self, db: AsyncSession, org_id: UUID, latitude: float, longitude: float
     ) -> OfficeLocation:
@@ -200,6 +217,32 @@ class AttendanceService:
             org_tz,
         )
 
+    async def _enforce_gps_accuracy(
+        self,
+        db: AsyncSession,
+        org_id: UUID,
+        latitude: float,
+        longitude: float,
+        accuracy: float | None,
+    ) -> None:
+        if not accuracy:
+            return
+        limit = settings.max_gps_accuracy_m
+        if settings.app_env == "development":
+            limit *= 2
+
+        # Indoors / desktop browsers often report ±100m+ even at the correct spot.
+        # If the reading is already at the office, relax the accuracy requirement.
+        dist = await self.geofence.nearest_distance_m(db, org_id, latitude, longitude)
+        if dist is not None and dist <= 50:
+            limit = max(limit, 200)
+
+        if accuracy > limit:
+            raise GeofenceError(
+                f"GPS accuracy too low (±{int(accuracy)}m). Move near a window, wait a few seconds, "
+                "then tap Refresh GPS. On your phone enable Precise Location / High accuracy mode."
+            )
+
     async def check_in(
         self,
         db: AsyncSession,
@@ -211,13 +254,7 @@ class AttendanceService:
         device_info: dict | None,
         accuracy: float | None = None,
     ) -> AttendanceRecord:
-        if accuracy and accuracy > (
-            settings.max_gps_accuracy_m * 2 if settings.app_env == "development" else settings.max_gps_accuracy_m
-        ):
-            raise GeofenceError(
-                f"GPS accuracy too low ({int(accuracy)}m). Move near a window, wait a few seconds, "
-                "then tap Refresh GPS. On your phone enable Precise Location / High accuracy mode."
-            )
+        await self._enforce_gps_accuracy(db, org_id, latitude, longitude, accuracy)
 
         emp = await db.get(Employee, employee_id)
         if not emp or not emp.face_enrolled:

@@ -135,7 +135,11 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
         )}
       </div>
       {!ready && !camError && <p className="mt-2 text-sm text-muted-foreground">Starting camera…</p>}
-      {camError && <p className="mt-2 text-sm text-warning">{camError}</p>}
+      {camError && (
+        <p className="mt-2 text-sm font-medium text-warning">
+          {camError}
+        </p>
+      )}
       {ready && !camError && !preview && (
         <p className={`mt-2 text-sm font-medium ${hint ? 'text-warning' : 'text-success'}`}>
           {hint ?? 'Face detected — ready to capture.'}
@@ -166,11 +170,26 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
       {insideGeofence === true && (
         <p className="mt-1 text-xs font-medium text-success">Inside office geofence.</p>
       )}
-      {coords?.accuracy != null && coords.accuracy > 50 && (
+      {!geofence && coords && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Office geofence not loaded — check-in still uses server validation.
+        </p>
+      )}
+      {coords?.accuracy != null && coords.accuracy > 50 && insideGeofence === true && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          GPS is imprecise indoors (±{Math.round(coords.accuracy)}m) but your location matches the office.
+        </p>
+      )}
+      {coords?.accuracy != null && coords.accuracy > 50 && insideGeofence !== true && (
         <p className="mt-1 text-xs text-warning">GPS is weak. Try near a window, then refresh location.</p>
       )}
       {locError && <p className="mt-1 text-xs text-warning">{locError}</p>}
       <div className="mt-4 flex flex-wrap gap-2">
+        {camError && (
+          <Button variant="outline" onClick={() => start()}>
+            Retry camera
+          </Button>
+        )}
         <Button variant="outline" onClick={() => getCurrentLocation()} disabled={locLoading}>
           Refresh GPS
         </Button>

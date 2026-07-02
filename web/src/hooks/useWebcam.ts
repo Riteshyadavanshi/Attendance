@@ -22,7 +22,12 @@ export function useWebcam() {
       }
       setReady(true);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Camera access denied');
+      const msg = e instanceof Error ? e.message : 'Camera access denied';
+      if (/notallowed|permission denied/i.test(msg)) {
+        setError('Camera blocked. Allow camera access in your browser (lock icon in the address bar).');
+      } else {
+        setError(msg);
+      }
       setReady(false);
     }
   }, []);
