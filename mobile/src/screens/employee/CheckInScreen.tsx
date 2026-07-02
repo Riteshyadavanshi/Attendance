@@ -91,14 +91,20 @@ export function CheckInScreen({ route, navigation }: Props) {
       };
       if (mode === 'in') {
         await attendanceApi.checkIn(payload);
-        Alert.alert('Success', 'Checked in successfully');
+        Alert.alert('Success', 'Checked in successfully!', [
+          { text: 'OK', onPress: () => navigation.navigate('MainTabs', { screen: 'Home' }) },
+        ]);
       } else {
         await attendanceApi.checkOut(payload);
-        Alert.alert('Success', 'Checked out successfully');
+        Alert.alert('Success', 'Checked out successfully!', [
+          { text: 'OK', onPress: () => navigation.navigate('MainTabs', { screen: 'Home' }) },
+        ]);
       }
-      navigation.goBack();
     } catch (e) {
-      Alert.alert(mode === 'in' ? 'Check-in failed' : 'Check-out failed', e instanceof Error ? e.message : 'Error');
+      Alert.alert(
+        mode === 'in' ? 'Check-in failed' : 'Check-out failed',
+        e instanceof Error ? e.message : 'Something went wrong. Please try again.',
+      );
     } finally {
       setSubmitting(false);
     }

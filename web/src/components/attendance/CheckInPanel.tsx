@@ -1,9 +1,12 @@
 'use client';
 
+import { CheckCircle2, XCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Modal } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/toast';
 import { useLiveFaceValidation } from '@/hooks/useFaceLandmarker';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -12,12 +15,14 @@ import { attendanceApi, officeLocationApi, type OfficeLocation } from '@/lib/api
 import { distanceMeters, isInsideGeofence } from '@/lib/geofence';
 
 export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
+  const router = useRouter();
   const { videoRef, ready, error: camError, start, captureBase64 } = useWebcam();
   const { coords, loading: locLoading, error: locError, getCurrentLocation } = useGeolocation();
   const toast = useToast();
   const [preview, setPreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [geofence, setGeofence] = useState<OfficeLocation | null>(null);
+  const [result, setResult] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const { detectorError, hint, validateNow } = useLiveFaceValidation(videoRef, 'presence', ready && !preview);
 
@@ -28,6 +33,17 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
   useEffect(() => {
     officeLocationApi.current().then(setGeofence).catch(() => setGeofence(null));
   }, []);
+
+  useEffect(() => {
+    if (result?.type !== 'success') return;
+    const timer = setTimeout(() => router.replace('/'), 2000);
+    return () => clearTimeout(timer);
+  }, [result, router]);
+
+  const closeResult = () => {
+    if (result?.type === 'success') router.replace('/');
+    else setResult(null);
+  };
 
   const insideGeofence =
     coords && geofence
@@ -100,10 +116,13 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
       };
       if (mode === 'in') await attendanceApi.checkIn(payload);
       else await attendanceApi.checkOut(payload);
-      toast.success(mode === 'in' ? 'Checked in successfully!' : 'Checked out successfully!');
-      setTimeout(() => window.location.reload(), 1200);
+      const msg = mode === 'in' ? 'Checked in successfully!' : 'Checked out successfully!';
+      toast.success(msg);
+      setResult({ type: 'success', message: msg });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Request failed');
+      const msg = e instanceof Error ? e.message : 'Request failed';
+      toast.error(msg);
+      setResult({ type: 'error', message: msg });
     } finally {
       setSubmitting(false);
     }
@@ -112,7 +131,26 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
   const canSubmit = insideGeofence !== false && !submitting;
 
   return (
-    <Card>
+    <>
+      <Modal
+        open={!!result}
+        onClose={closeResult}
+        title={result?.type === 'success' ? 'Success' : 'Failed'}
+        description={result?.message}
+      >
+        <div className="flex flex-col items-center gap-4 py-2">
+          {result?.type === 'success' ? (
+            <CheckCircle2 className="h-14 w-14 text-success" />
+          ) : (
+            <XCircle className="h-14 w-14 text-destructive" />
+          )}
+          <Button onClick={closeResult} className="w-full">
+            {result?.type === 'success' ? 'Go to home' : 'OK'}
+          </Button>
+        </div>
+      </Modal>
+
+      <Card>
       <p className="text-sm text-muted-foreground">
         {mode === 'in' ? 'Check in with face verification and office geofence.' : 'Check out with face verification.'}
       </p>
@@ -188,5 +226,6 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
         </Button>
       </div>
     </Card>
+    </>
   );
 }
