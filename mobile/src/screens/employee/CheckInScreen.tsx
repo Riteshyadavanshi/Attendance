@@ -31,11 +31,6 @@ export function CheckInScreen({ route, navigation }: Props) {
     officeLocationApi.current().then(setGeofence).catch(() => setGeofence(null));
   }, []);
 
-  const distanceToOffice =
-    coords && geofence
-      ? Math.round(distanceMeters(coords.latitude, coords.longitude, geofence.latitude, geofence.longitude))
-      : null;
-
   const insideGeofence =
     coords && geofence
       ? isInsideGeofence(
@@ -127,28 +122,19 @@ export function CheckInScreen({ route, navigation }: Props) {
       </View>
 
       {geofence && (
-        <Text style={[styles.coords, { color: colors.textSecondary }]}>
-          Office: {geofence.name} · radius {geofence.radius_meters}m
-        </Text>
-      )}
-      {coords && (
-        <Text style={[styles.coords, { color: colors.textSecondary }]}>
-          GPS: {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}
-          {coords.accuracy != null ? ` (±${Math.round(coords.accuracy)}m)` : ''}
-          {distanceToOffice != null ? ` · ${distanceToOffice}m from office` : ''}
-        </Text>
+        <Text style={[styles.coords, { color: colors.textSecondary }]}>Office: {geofence.name}</Text>
       )}
       {insideGeofence === false && geofence ? (
         <Text style={[styles.warn, { color: colors.warning }]}>
-          Outside office geofence. Move within {geofence.radius_meters}m to continue.
+          Outside the office area. Move closer to {geofence.name} to continue.
         </Text>
       ) : null}
       {insideGeofence === true ? (
-        <Text style={[styles.ok, { color: colors.success }]}>Inside office geofence.</Text>
+        <Text style={[styles.ok, { color: colors.success }]}>You are at the office location.</Text>
       ) : null}
-      {coords?.accuracy != null && coords.accuracy > 50 ? (
+      {coords?.accuracy != null && coords.accuracy > 50 && insideGeofence !== true ? (
         <Text style={[styles.warn, { color: colors.warning }]}>
-          GPS is weak (need ±50m or better). Go near a window or outdoors, then tap Refresh GPS.
+          Location signal is weak. Try near a window, then refresh GPS.
         </Text>
       ) : null}
       {locError ? <Text style={[styles.warn, { color: colors.warning }]}>{locError}</Text> : null}

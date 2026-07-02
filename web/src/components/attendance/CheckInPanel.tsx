@@ -29,11 +29,6 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
     officeLocationApi.current().then(setGeofence).catch(() => setGeofence(null));
   }, []);
 
-  const distanceToOffice =
-    coords && geofence
-      ? Math.round(distanceMeters(coords.latitude, coords.longitude, geofence.latitude, geofence.longitude))
-      : null;
-
   const insideGeofence =
     coords && geofence
       ? isInsideGeofence(
@@ -151,37 +146,21 @@ export function CheckInPanel({ mode }: { mode: 'in' | 'out' }) {
         </p>
       )}
       {geofence && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          Office: {geofence.name} · allowed radius {geofence.radius_meters}m
-        </p>
-      )}
-      {coords && (
-        <p className="mt-1 text-xs text-muted-foreground">
-          GPS: {coords.latitude.toFixed(5)}, {coords.longitude.toFixed(5)}
-          {coords.accuracy != null ? ` (±${Math.round(coords.accuracy)}m)` : ''}
-          {distanceToOffice != null ? ` · ${distanceToOffice}m from office` : ''}
-        </p>
+        <p className="mt-2 text-xs text-muted-foreground">Office: {geofence.name}</p>
       )}
       {insideGeofence === false && geofence && (
         <p className="mt-1 text-xs font-medium text-warning">
-          You are outside the office geofence. Move within {geofence.radius_meters}m to {mode === 'in' ? 'check in' : 'check out'}.
+          You are outside the office area. Move closer to {geofence.name} to {mode === 'in' ? 'check in' : 'check out'}.
         </p>
       )}
       {insideGeofence === true && (
-        <p className="mt-1 text-xs font-medium text-success">Inside office geofence.</p>
+        <p className="mt-1 text-xs font-medium text-success">You are at the office location.</p>
       )}
       {!geofence && coords && (
-        <p className="mt-1 text-xs text-muted-foreground">
-          Office geofence not loaded — check-in still uses server validation.
-        </p>
-      )}
-      {coords?.accuracy != null && coords.accuracy > 50 && insideGeofence === true && (
-        <p className="mt-1 text-xs text-muted-foreground">
-          GPS is imprecise indoors (±{Math.round(coords.accuracy)}m) but your location matches the office.
-        </p>
+        <p className="mt-1 text-xs text-muted-foreground">Verifying your location…</p>
       )}
       {coords?.accuracy != null && coords.accuracy > 50 && insideGeofence !== true && (
-        <p className="mt-1 text-xs text-warning">GPS is weak. Try near a window, then refresh location.</p>
+        <p className="mt-1 text-xs text-warning">Location signal is weak. Try near a window, then refresh.</p>
       )}
       {locError && <p className="mt-1 text-xs text-warning">{locError}</p>}
       <div className="mt-4 flex flex-wrap gap-2">

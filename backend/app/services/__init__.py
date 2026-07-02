@@ -227,20 +227,29 @@ class AttendanceService:
     ) -> None:
         if not accuracy:
             return
+
+        result = await db.execute(
+            select(OfficeLocation).where(
+                OfficeLocation.organization_id == org_id,
+                OfficeLocation.is_active.is_(True),
+            )
+        )
+        for loc in result.scalars().all():
+            dist = self.geofence.haversine_distance_m(
+                latitude, longitude, float(loc.latitude), float(loc.longitude)
+            )
+            # Inside the allowed geofence — indoor GPS is often ±100–250m; allow check-in.
+            if dist <= loc.radius_meters:
+                return
+
         limit = settings.max_gps_accuracy_m
         if settings.app_env == "development":
             limit *= 2
 
-        # Indoors / desktop browsers often report ±100m+ even at the correct spot.
-        # If the reading is already at the office, relax the accuracy requirement.
-        dist = await self.geofence.nearest_distance_m(db, org_id, latitude, longitude)
-        if dist is not None and dist <= 50:
-            limit = max(limit, 200)
-
         if accuracy > limit:
             raise GeofenceError(
-                f"GPS accuracy too low (±{int(accuracy)}m). Move near a window, wait a few seconds, "
-                "then tap Refresh GPS. On your phone enable Precise Location / High accuracy mode."
+                "GPS signal is too weak. Move near a window, wait a few seconds, "
+                "then tap Refresh GPS."
             )
 
     async def check_in(
